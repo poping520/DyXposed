@@ -21,7 +21,7 @@ public class XposedChecker implements IXposedHookLoadPackage {
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
 
         if (BuildConfig.APPLICATION_ID.equals(lpparam.packageName)) {
-            final Class<?> clz = findClass(BaseActivity.class.getName(), lpparam.classLoader);
+            final Class<?> clz = findClass(BaseMainActivity.class.getName(), lpparam.classLoader);
 
             findAndHookMethod(clz, METHOD_NAME, new XC_MethodHook() {
                 @Override

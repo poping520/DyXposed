@@ -10,13 +10,13 @@ import android.view.MenuItem;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleRecyclerViewAdapter;
-import com.poping520.dyxposed.framework.BaseActivity;
+import com.poping520.dyxposed.framework.BaseMainActivity;
 import com.poping520.dyxposed.framework.Module;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseMainActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

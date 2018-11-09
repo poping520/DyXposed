@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DyXposed</string>
+    <string name="action_settings">设置</string>
+    <string name="go_on">继续</string>
+    <string name="permission_dialog_title">授权提示</string>
+    <string name="permission_dialog_msg"></string>
+</resources>

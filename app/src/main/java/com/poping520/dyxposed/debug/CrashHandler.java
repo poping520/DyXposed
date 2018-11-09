@@ -1,4 +1,4 @@
-package com.poping520.dyxposed.app;
+package com.poping520.dyxposed.debug;
 
 import android.content.Context;
 import android.os.Build;
@@ -16,9 +16,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 import static com.poping520.dyxposed.util.DateUtil.getCurrentTime;
 
@@ -119,7 +116,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
         mSb.append("=====> crash log end <=====\n\n");
 
-        String fileName = "gangstar_mv_crash-" + getCurrentTime("MM-dd-HH-mm") + ".log";
+        String fileName = "dyxposed_crash-" + getCurrentTime("MM-dd-HH-mm") + ".log";
         final File file = new File(Environment.getExternalStorageDirectory(), fileName);
 
         stringToFile(file, mSb.toString());

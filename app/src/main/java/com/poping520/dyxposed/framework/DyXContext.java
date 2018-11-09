@@ -1,0 +1,54 @@
+package com.poping520.dyxposed.framework;
+
+import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import com.poping520.dyxposed.BuildConfig;
+
+/**
+ * @author WangKZ
+ * @version 1.0.0
+ * create on 2018/11/9 10:16
+ */
+public class DyXContext {
+
+    private static class InnerHolder {
+        private static final DyXContext INSTANCE = new DyXContext();
+        private Context mApplicationContext;
+    }
+
+    private static final String SPK_LAUNCH_TIMES = "LaunchTimes";
+
+    private final InnerHolder mHolder;
+
+    private DyXContext() {
+        mHolder = new InnerHolder();
+    }
+
+    public static DyXContext getInstance() {
+        return InnerHolder.INSTANCE;
+    }
+
+    void init(Application app) {
+        mHolder.mApplicationContext = app.getApplicationContext();
+    }
+
+    void init(BaseMainActivity act) {
+        final SharedPreferences sp = getAppSharedPrefs();
+        int lastTimes = sp.getInt(SPK_LAUNCH_TIMES, 0);
+        sp.edit().putInt(SPK_LAUNCH_TIMES, ++lastTimes).apply();
+    }
+
+    public static Context getApplicationContext() {
+        return getInstance().mHolder.mApplicationContext;
+    }
+
+    public static SharedPreferences getAppSharedPrefs() {
+        return getApplicationContext().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE);
+    }
+
+    public static boolean isLaunchFirstTime() {
+        return getAppSharedPrefs().getInt(SPK_LAUNCH_TIMES, 0) == 0;
+    }
+}
