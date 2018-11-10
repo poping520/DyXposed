@@ -5,12 +5,15 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Process;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
 
 import com.poping520.dyxposed.BuildConfig;
 import com.poping520.dyxposed.R;
@@ -76,7 +79,7 @@ public abstract class BaseMainActivity extends AppCompatActivity {
             mPermissionDialog = new MDialog.Builder(this)
                     .setHeaderBgColor(Color.BLACK)
                     .setTitle(R.string.permission_dialog_title)
-                    .setMessage("")
+                    .setMessage(R.string.dialog_msg_request_permission)
                     .setPositiveButton(R.string.go_on, true, (mDialog, mDialogAction) -> {
                         ActivityCompat.requestPermissions(this, list.toArray(new String[0]), REQUEST_CODE);
                     })
@@ -102,11 +105,24 @@ public abstract class BaseMainActivity extends AppCompatActivity {
             }
         }
 
-        if (isAllGranted) {
-            if (mPermissionDialog != null)
+        if (mPermissionDialog != null) {
+            if (isAllGranted) {
+                Snackbar.make(
+                        findViewById(android.R.id.content), R.string.toast_permission_granted, Snackbar.LENGTH_SHORT
+                ).show();
                 mPermissionDialog.dismiss();
-        } else {
-
+            } else {
+                final Button negBtn = mPermissionDialog.getNegativeButton();
+                final Button posBtn = mPermissionDialog.getPositiveButton();
+                mPermissionDialog.setMessage(R.string.dialog_msg_refuse_permission);
+                negBtn.setVisibility(View.VISIBLE);
+                negBtn.setText(R.string.exit_app);
+                negBtn.setOnClickListener(v -> {
+                    finish();
+                    Process.killProcess(Process.myPid());
+                });
+                posBtn.setText(R.string.retry_request_permission);
+            }
         }
 
         onCheckPermissionResult(isAllGranted);
@@ -116,8 +132,32 @@ public abstract class BaseMainActivity extends AppCompatActivity {
         if (!isGranted) {
             return;
         }
-        Env.init(this);
 
+        final Env env = Env.getInstance();
+        env.init();
+
+        // 选择工作模式
+        if (DyXContext.isLaunchFirstTime() || env.isWorkModeNotConfigure()) {
+
+            final MDialog mDialog = new MDialog.Builder(this)
+                    .setHeaderBgColor(Color.BLACK)
+                    .setTitle(R.string.dialog_title_select_work_mode)
+                    .setCancelable(false)
+                    .create();
+
+            // 设备未ROOT
+            if (!AndroidSystem.isRootedDevice()) {
+                mDialog.getPositiveButton().setText(R.string.go_on);
+
+                mDialog.getNegativeButton().setText("设备已ROOT");
+
+            } else {
+                mDialog.getPositiveButton().setText("ROOT 模式");
+                mDialog.getNegativeButton().setText("普通模式");
+            }
+
+            mDialog.show();
+        }
     }
 
     private boolean waitHook() {

@@ -3,6 +3,11 @@
     <string name="app_name">DyXposed</string>
     <string name="action_settings">设置</string>
     <string name="go_on">继续</string>
+    <string name="exit_app">退出程序</string>
+    <string name="retry_request_permission">重新申请</string>
     <string name="permission_dialog_title">授权提示</string>
-    <string name="permission_dialog_msg"></string>
+    <string name="dialog_msg_request_permission">DyXposed 需要存储空间权限才能正常运行，请授予本程序必要权限</string>
+    <string name="dialog_msg_refuse_permission">授权失败，这将导致 DyXposed 无法正常工作</string>
+    <string name="toast_permission_granted">DyXposed 已获得必需权限</string>
+    <string name="dialog_title_select_work_mode">选择工作模式</string>
 </resources>

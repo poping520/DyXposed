@@ -14,8 +14,17 @@ public class AndroidSystem {
     public static final int API_LEVEL = Build.VERSION.SDK_INT;
 
 
+    public static boolean isRootedDevice() {
+        return isSUBinaryExists() || isMagiskInstalled();
+    }
+
+    private static boolean isMagiskInstalled() {
+        final Shell.Result ret = Shell.exec(false, false, "magisk -V");
+        return new File("/sbin/magisk").exists() || ret.isSuccess;
+    }
+
     // 检查 su 二进制文件是否存在
-    private boolean isSUBinaryExists() {
+    private static boolean isSUBinaryExists() {
         final String[] places = {
                 "/sbin/su",
                 "/system/bin/su",

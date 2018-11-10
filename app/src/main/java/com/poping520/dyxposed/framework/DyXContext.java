@@ -1,10 +1,12 @@
 package com.poping520.dyxposed.framework;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.poping520.dyxposed.BuildConfig;
+import com.poping520.dyxposed.exception.DyXRuntimeException;
 
 /**
  * @author WangKZ
@@ -16,6 +18,7 @@ public class DyXContext {
     private static class InnerHolder {
         private static final DyXContext INSTANCE = new DyXContext();
         private Context mApplicationContext;
+        private Activity mMainActivity;
     }
 
     private static final String SPK_LAUNCH_TIMES = "LaunchTimes";
@@ -35,13 +38,19 @@ public class DyXContext {
     }
 
     void init(BaseMainActivity act) {
+        mHolder.mMainActivity = act;
         final SharedPreferences sp = getAppSharedPrefs();
         int lastTimes = sp.getInt(SPK_LAUNCH_TIMES, 0);
         sp.edit().putInt(SPK_LAUNCH_TIMES, ++lastTimes).apply();
     }
 
     public static Context getApplicationContext() {
-        return getInstance().mHolder.mApplicationContext;
+        final Context context = getInstance().mHolder.mApplicationContext;
+        if (context == null)
+            //TODO
+            throw new DyXRuntimeException("...");
+
+        return context;
     }
 
     public static SharedPreferences getAppSharedPrefs() {

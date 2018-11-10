@@ -2,5 +2,11 @@
     <string name="app_name">DyXposed</string>
     <string name="action_settings">Settings</string>
     <string name="go_on">continue</string>
+    <string name="exit_app">exit app</string>
+    <string name="retry_request_permission">retry</string>
     <string name="permission_dialog_title"></string>
+    <string name="dialog_msg_request_permission"></string>
+    <string name="dialog_msg_refuse_permission"></string>
+    <string name="toast_permission_granted"></string>
+    <string name="dialog_title_select_work_mode"></string>
 </resources>
