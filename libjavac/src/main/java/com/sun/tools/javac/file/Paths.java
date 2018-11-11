@@ -135,6 +135,12 @@ public class Paths {
      */
     private boolean isDefaultBootClassPath;
 
+    private String bootClassJarPath;
+
+    void setBootClassJarPath(String bootClassJarPath) {
+        this.bootClassJarPath = bootClassJarPath;
+    }
+
     Path getPathForLocation(Location location) {
         Path path = pathsForLocation.get(location);
         if (path == null)
@@ -406,20 +412,11 @@ public class Paths {
         if (bootclasspathOpt != null) {
             path.addFiles(bootclasspathOpt);
         } else {
-            // Standard system classes for this compiler's release.
-
             // @AndroidChanged
-//            String files = System.getProperty("sun.boot.class.path");
-//            path.addFiles(files, false);
-//            File rt_jar = new File("rt.jar");
-//            for (File file : getPathEntries(files)) {
-//                if (new File(file.getName()).equals(rt_jar))
-//                    defaultBootClassPathRtJar = file;
-//            }
-            final File file = new File("/sdcard/test/rt.jar");
-            path.add(file);
-            defaultBootClassPathRtJar = file;
-            // @AndroidChanged
+            if (bootClassJarPath != null) {
+                path.addFiles(bootClassJarPath, false);
+                defaultBootClassPathRtJar = new File(bootClassJarPath);
+            }
         }
 
         path.addFiles(xbootclasspathAppendOpt);

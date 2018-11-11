@@ -236,4 +236,9 @@ public interface StandardJavaFileManager extends JavaFileManager {
      */
     Iterable<? extends File> getLocation(Location location);
 
+
+    /**
+     * @AndroidChanged
+     */
+    void setBootClassJarPath(String path);
 }

@@ -33,12 +33,13 @@ public class Env {
     public static final int MODE_NOT_CONFIGURE = 0x0;
 
 
-    public static final String ENV_PATH =
+    private static final String ENV_PATH =
             Environment.getExternalStorageDirectory().getAbsolutePath() + "/DyXposed";
+
 
     private static final String SPK_WORK_MODE = "WorkMode";
 
-    private enum Api {
+    public enum Api {
 
         XPOSED_API("api/xposed-api-82.jar"),
 

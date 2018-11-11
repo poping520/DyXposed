@@ -1,6 +1,14 @@
 package com.poping520.dyxposed.system;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
+import android.util.Log;
+
+import com.poping520.dyxposed.exception.DyXRuntimeException;
+import com.poping520.dyxposed.framework.DyXContext;
 
 import java.io.File;
 
@@ -12,6 +20,8 @@ import java.io.File;
 public class AndroidSystem {
 
     public static final int API_LEVEL = Build.VERSION.SDK_INT;
+
+    public static final String XPOSED_INSTALLER_PACKAGE_NAME = "de.robv.android.xposed.installer";
 
 
     public static boolean isRootedDevice() {
@@ -42,5 +52,56 @@ public class AndroidSystem {
             }
         }
         return false;
+    }
+
+    /**
+     * 检测是否安装 Xposed 框架
+     */
+    public static boolean isXposedFrameworkInstalled() {
+        try {
+            throw new Exception();
+        } catch (Exception e) {
+            final StackTraceElement[] stackTrace = e.getStackTrace();
+            if (stackTrace == null || stackTrace.length == 0) {
+                return false;
+            }
+
+            for (int i = stackTrace.length - 1; i >= 0; i--) {
+                if ("de.robv.android.xposed.XposedBridge".equals(stackTrace[i].getClassName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 检测是否安装 Xposed 管理器
+     */
+    public static boolean isXposedManagerInstalled() {
+        final PackageManager pm = DyXContext.getApplicationContext().getPackageManager();
+        try {
+            pm.getPackageInfo(XPOSED_INSTALLER_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static void jump2XposedManager() {
+        try {
+            final Context context = DyXContext.getApplicationContext();
+            ComponentName cn = new ComponentName(XPOSED_INSTALLER_PACKAGE_NAME,
+                    XPOSED_INSTALLER_PACKAGE_NAME + ".WelcomeActivity");
+            final Intent intent = new Intent();
+            intent.setComponent(cn);
+            context.startActivity(intent);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // TODO
+            throw new DyXRuntimeException();
+        }
     }
 }

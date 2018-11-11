@@ -23,12 +23,12 @@ import java.util.List;
  * @author poping520
  * @version 1.0.0
  */
-public class ModuleRecyclerViewAdapter extends RecyclerView.Adapter<ModuleRecyclerViewAdapter.ViewHolder> {
+public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder> {
 
     private Context mContext;
     private List<Module> mList;
 
-    public ModuleRecyclerViewAdapter(Context context, List<Module> list) {
+    public ModuleAdapter(Context context, List<Module> list) {
         mContext = context;
         mList = list;
     }

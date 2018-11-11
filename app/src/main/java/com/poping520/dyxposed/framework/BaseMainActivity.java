@@ -2,7 +2,6 @@ package com.poping520.dyxposed.framework;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
@@ -19,6 +18,7 @@ import com.poping520.dyxposed.BuildConfig;
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.system.AndroidSystem;
 import com.poping520.open.mdialog.MDialog;
+import com.poping520.open.mdialog.MDialogAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +39,7 @@ public abstract class BaseMainActivity extends AppCompatActivity {
 
     private MDialog mPermissionDialog;
 
+    private static final String TAG = "BaseMainActivity";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -46,16 +47,37 @@ public abstract class BaseMainActivity extends AppCompatActivity {
 
         DyXContext.getInstance().init(this);
 
+        // xposed 状态异常
         if (waitHook() && !BuildConfig.DEBUG) {
-            MDialog mDialog = new MDialog.Builder(this)
-                    .setHeaderBgColor(getResources().getColor(R.color.Teal_500))
-                    .setTitle("!!!")
-                    .setMessage("似乎Xposed没有正常工作，您所做的一切修改都将没有效果！！！")
-                    .create();
-            mDialog.show();
+            handleXposedState();
         } else {
             checkPermission();
         }
+    }
+
+    private void handleXposedState() {
+        MDialog mDialog = new MDialog.Builder(this)
+                .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
+                .setTitle(R.string.warning)
+                .setNegativeButton(R.string.exit_app, (dialog, mDialogAction) -> killSelf())
+                .setCancelable(false)
+                .create();
+
+        // xposed 状态正常 但未激活模块
+        final Button posBtn = mDialog.getPositiveButton();
+        if (AndroidSystem.isXposedFrameworkInstalled()
+                && AndroidSystem.isXposedManagerInstalled()) {
+            mDialog.setMessage(R.string.dialog_msg_xposed_module_not_active);
+            posBtn.setText(R.string.enable_module);
+            posBtn.setOnClickListener(v -> {
+                AndroidSystem.jump2XposedManager();
+            });
+        } else {
+            mDialog.setMessage(R.string.dialog_msg_xposed_not_install);
+            posBtn.setText(R.string.understand);
+        }
+
+        mDialog.show();
     }
 
 
@@ -77,7 +99,7 @@ public abstract class BaseMainActivity extends AppCompatActivity {
 
         if (list.size() > 0) {
             mPermissionDialog = new MDialog.Builder(this)
-                    .setHeaderBgColor(Color.BLACK)
+                    .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
                     .setTitle(R.string.permission_dialog_title)
                     .setMessage(R.string.dialog_msg_request_permission)
                     .setPositiveButton(R.string.go_on, true, (mDialog, mDialogAction) -> {
@@ -117,10 +139,7 @@ public abstract class BaseMainActivity extends AppCompatActivity {
                 mPermissionDialog.setMessage(R.string.dialog_msg_refuse_permission);
                 negBtn.setVisibility(View.VISIBLE);
                 negBtn.setText(R.string.exit_app);
-                negBtn.setOnClickListener(v -> {
-                    finish();
-                    Process.killProcess(Process.myPid());
-                });
+                negBtn.setOnClickListener(v -> killSelf());
                 posBtn.setText(R.string.retry_request_permission);
             }
         }
@@ -140,24 +159,41 @@ public abstract class BaseMainActivity extends AppCompatActivity {
         if (DyXContext.isLaunchFirstTime() || env.isWorkModeNotConfigure()) {
 
             final MDialog mDialog = new MDialog.Builder(this)
-                    .setHeaderBgColor(Color.BLACK)
+                    .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
                     .setTitle(R.string.dialog_title_select_work_mode)
                     .setCancelable(false)
                     .create();
 
-            // 设备未ROOT
-            if (!AndroidSystem.isRootedDevice()) {
-                mDialog.getPositiveButton().setText(R.string.go_on);
+            final Button posBtn = mDialog.getPositiveButton();
+            final Button negBtn = mDialog.getNegativeButton();
 
-                mDialog.getNegativeButton().setText("设备已ROOT");
+            // 设备已ROOT
+            if (AndroidSystem.isRootedDevice()) {
+                mDialog.setHTMLMessage(R.string.dialog_msg_work_mode_root);
+
+                posBtn.setText(R.string.work_mode_root);
+                negBtn.setText(R.string.work_mode_normal);
+
+                mDialog.setOnClickListener((dialog, mDialogAction) -> {
+                    env.setWorkMode(
+                            mDialogAction == MDialogAction.NEGATIVE
+                                    ? Env.MODE_NORMAL : Env.MODE_ROOT
+                    );
+                });
 
             } else {
-                mDialog.getPositiveButton().setText("ROOT 模式");
-                mDialog.getNegativeButton().setText("普通模式");
+                mDialog.getPositiveButton().setText(R.string.go_on);
+                mDialog.getNegativeButton().setText("设备已ROOT");
             }
+
 
             mDialog.show();
         }
+    }
+
+    protected void killSelf() {
+        finish();
+        Process.killProcess(Process.myPid());
     }
 
     private boolean waitHook() {
