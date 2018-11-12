@@ -19,15 +19,21 @@ import java.io.File;
  */
 public class AndroidSystem {
 
+    /**
+     * 当前系统 SDK_INT
+     */
     public static final int API_LEVEL = Build.VERSION.SDK_INT;
 
     public static final String XPOSED_INSTALLER_PACKAGE_NAME = "de.robv.android.xposed.installer";
 
-
+    /**
+     * @return 当前设备的系统是否 ROOT
+     */
     public static boolean isRootedDevice() {
         return isSUBinaryExists() || isMagiskInstalled();
     }
 
+    // 是否安装 Magisk 框架
     private static boolean isMagiskInstalled() {
         final Shell.Result ret = Shell.exec(false, false, "magisk -V");
         return new File("/sbin/magisk").exists() || ret.isSuccess;

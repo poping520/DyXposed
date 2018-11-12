@@ -8,4 +8,6 @@
     <color name="dark">#424242</color>
 
     <color name="Teal_500">#009688</color>
+
+    <color name="item_selected_bg">#7780CBC4</color>
 </resources>

@@ -100,6 +100,7 @@ public abstract class BaseMainActivity extends AppCompatActivity {
         if (list.size() > 0) {
             mPermissionDialog = new MDialog.Builder(this)
                     .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
+                    .setHeaderPic(R.drawable.ic_security_white_24dp)
                     .setTitle(R.string.permission_dialog_title)
                     .setMessage(R.string.dialog_msg_request_permission)
                     .setPositiveButton(R.string.go_on, true, (mDialog, mDialogAction) -> {
@@ -152,43 +153,7 @@ public abstract class BaseMainActivity extends AppCompatActivity {
             return;
         }
 
-        final Env env = Env.getInstance();
-        env.init();
-
-        // 选择工作模式
-        if (DyXContext.isLaunchFirstTime() || env.isWorkModeNotConfigure()) {
-
-            final MDialog mDialog = new MDialog.Builder(this)
-                    .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
-                    .setTitle(R.string.dialog_title_select_work_mode)
-                    .setCancelable(false)
-                    .create();
-
-            final Button posBtn = mDialog.getPositiveButton();
-            final Button negBtn = mDialog.getNegativeButton();
-
-            // 设备已ROOT
-            if (AndroidSystem.isRootedDevice()) {
-                mDialog.setHTMLMessage(R.string.dialog_msg_work_mode_root);
-
-                posBtn.setText(R.string.work_mode_root);
-                negBtn.setText(R.string.work_mode_normal);
-
-                mDialog.setOnClickListener((dialog, mDialogAction) -> {
-                    env.setWorkMode(
-                            mDialogAction == MDialogAction.NEGATIVE
-                                    ? Env.MODE_NORMAL : Env.MODE_ROOT
-                    );
-                });
-
-            } else {
-                mDialog.getPositiveButton().setText(R.string.go_on);
-                mDialog.getNegativeButton().setText("设备已ROOT");
-            }
-
-
-            mDialog.show();
-        }
+        Env.getInstance().init();
     }
 
     protected void killSelf() {

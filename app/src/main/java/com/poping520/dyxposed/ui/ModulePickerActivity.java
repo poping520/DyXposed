@@ -12,10 +12,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import com.poping520.dyxposed.R;
-import com.poping520.dyxposed.adapter.FilePickerAdapter;
+import com.poping520.dyxposed.adapter.ModulePickerAdapter;
 import com.poping520.dyxposed.model.FileItem;
 
-public class FilePickerActivity extends AppCompatActivity {
+/**
+ * 选择模块导入
+ */
+public class ModulePickerActivity extends AppCompatActivity {
 
     @Nullable
     private FileItem selectedFile;
@@ -25,10 +28,12 @@ public class FilePickerActivity extends AppCompatActivity {
      */
     public static final String EXTRA_NAME_SELECTED_FILE = "SelectedFile";
 
+    private FloatingActionButton mFab;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_file_picker);
+        setContentView(R.layout.activity_module_picker);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -37,26 +42,33 @@ public class FilePickerActivity extends AppCompatActivity {
             supportActionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        mFab = findViewById(R.id.fab);
 
-        final FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(v -> {
+        initFAB();
+        initRecyclerView();
+    }
+
+    private void initFAB() {
+        mFab.setOnClickListener(v -> {
             final Intent intent = new Intent();
             intent.putExtra(EXTRA_NAME_SELECTED_FILE, selectedFile);
             setResult(RESULT_OK, intent);
             finish();
         });
+    }
 
-        final RecyclerView rv = findViewById(R.id.rv_file_picker);
+    private void initRecyclerView() {
+        final RecyclerView rv = findViewById(R.id.rv_module_picker);
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         rv.setLayoutManager(llm);
 
-        final FilePickerAdapter adapter = new FilePickerAdapter(this);
+        final ModulePickerAdapter adapter = new ModulePickerAdapter(this);
 
         adapter.setOnItemSelectedListener(item -> {
             selectedFile = item;
-            fab.setVisibility(View.VISIBLE);
+            mFab.setVisibility(View.VISIBLE);
         });
 
         rv.setAdapter(adapter);

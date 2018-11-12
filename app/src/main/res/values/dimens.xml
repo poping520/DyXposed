@@ -3,5 +3,6 @@
     <dimen name="zero">0dp</dimen>
     <dimen name="cardview_margin_start">8dp</dimen>
     <dimen name="cardview_margin_top">4dp</dimen>
+    <dimen name="imageview_icon_size">42dp</dimen>
     <dimen name="cardview_amin_translation_z">3.3dp</dimen>
 </resources>

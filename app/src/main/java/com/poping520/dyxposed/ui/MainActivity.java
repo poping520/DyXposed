@@ -8,19 +8,23 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleAdapter;
 import com.poping520.dyxposed.framework.BaseMainActivity;
 import com.poping520.dyxposed.framework.DyXCompiler;
-import com.poping520.dyxposed.framework.ModuleManager;
+import com.poping520.dyxposed.framework.Env;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.model.FileItem;
+import com.poping520.dyxposed.system.AndroidSystem;
+import com.poping520.open.mdialog.MDialog;
+import com.poping520.open.mdialog.MDialogAction;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.poping520.dyxposed.ui.FilePickerActivity.EXTRA_NAME_SELECTED_FILE;
+import static com.poping520.dyxposed.ui.ModulePickerActivity.EXTRA_NAME_SELECTED_FILE;
 
 public class MainActivity extends BaseMainActivity {
 
@@ -39,16 +43,56 @@ public class MainActivity extends BaseMainActivity {
         initFAB();
         initRecyclerViews();
 
-        new ModuleManager().loadModule("/sdcard/Dyxposed/module/a.jar");
     }
 
     private void initFAB() {
-        FloatingActionButton fab = findViewById(R.id.fab);
+        final FloatingActionButton fab = findViewById(R.id.fab);
+
+        final Env env = Env.getInstance();
+
+        if (env.isWorkModeNotConfigure()) {
+            fab.setImageResource(R.drawable.ic_build_white_24dp);
+        }
+
         fab.setOnClickListener(v -> {
 
-            final Intent intent = new Intent(this, FilePickerActivity.class);
-            startActivityForResult(intent, REQ_CODE_SELECT_MODULE);
+            // 选择工作模式
+            if (env.isWorkModeNotConfigure()) {
+                final MDialog mDialog = new MDialog.Builder(this)
+                        .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
+                        .setHeaderPic(R.drawable.ic_build_white_24dp)
+                        .setTitle(R.string.dialog_title_select_work_mode)
+                        .setCancelable(false)
+                        .create();
 
+                final Button posBtn = mDialog.getPositiveButton();
+                final Button negBtn = mDialog.getNegativeButton();
+
+                if (AndroidSystem.isRootedDevice()) { // 设备已ROOT
+                    mDialog.setHTMLMessage(R.string.dialog_msg_work_mode_root);
+
+                    posBtn.setText(R.string.work_mode_root);
+                    negBtn.setText(R.string.work_mode_normal);
+
+                    mDialog.setOnClickListener((dialog, mDialogAction) -> {
+                        env.setWorkMode(
+                                mDialogAction == MDialogAction.NEGATIVE
+                                        ? Env.MODE_NORMAL : Env.MODE_ROOT
+                        );
+                        fab.setImageResource(R.drawable.ic_add_white_24dp);
+                    });
+
+                } else { // 设备未ROOT
+                    mDialog.getPositiveButton().setText(R.string.go_on);
+                    mDialog.getNegativeButton().setText("设备已ROOT");
+                }
+
+                mDialog.show();
+
+            } else {
+                final Intent intent = new Intent(this, ModulePickerActivity.class);
+                startActivityForResult(intent, REQ_CODE_SELECT_MODULE);
+            }
         });
     }
 

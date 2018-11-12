@@ -42,7 +42,7 @@
         </activity>
 
         <activity
-            android:name=".ui.FilePickerActivity"
+            android:name=".ui.ModulePickerActivity"
             android:label="@string/file_picker_label"
             android:parentActivityName=".ui.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">

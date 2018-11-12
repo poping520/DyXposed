@@ -121,12 +121,19 @@ public class Env {
         mAppSp.edit().putInt(SPK_WORK_MODE, mode).apply();
     }
 
+    /**
+     * @return 工作模式 {@link #MODE_ROOT} or {@link #MODE_NORMAL}
+     */
     public int getWorkMode() {
         return mAppSp.getInt(SPK_WORK_MODE, MODE_NORMAL);
     }
 
+    /**
+     * @return 是否已配置工作模式
+     */
     public boolean isWorkModeNotConfigure() {
-        return mAppSp.getInt(SPK_WORK_MODE, MODE_NOT_CONFIGURE) == MODE_NOT_CONFIGURE;
+        return mAppSp.getInt(SPK_WORK_MODE, MODE_NOT_CONFIGURE) == MODE_NOT_CONFIGURE
+                || DyXContext.isLaunchFirstTime();
     }
 
     static String getClassOutputDir() {
