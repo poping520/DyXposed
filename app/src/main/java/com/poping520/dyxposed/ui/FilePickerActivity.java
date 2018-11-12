@@ -1,7 +1,6 @@
 package com.poping520.dyxposed.ui;
 
 import android.content.Intent;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
@@ -53,8 +52,7 @@ public class FilePickerActivity extends AppCompatActivity {
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         rv.setLayoutManager(llm);
 
-        final FilePickerAdapter adapter = new FilePickerAdapter(this,
-                Environment.getExternalStorageDirectory());
+        final FilePickerAdapter adapter = new FilePickerAdapter(this);
 
         adapter.setOnItemSelectedListener(item -> {
             selectedFile = item;

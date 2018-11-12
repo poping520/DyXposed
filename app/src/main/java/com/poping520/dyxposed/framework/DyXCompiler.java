@@ -4,6 +4,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
+import com.poping520.dyxposed.libdx.DxTool;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,9 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import javax.tools.FileObject;
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
@@ -37,7 +36,7 @@ public class DyXCompiler {
      *
      * @return
      */
-    public static boolean compile() {
+    public static boolean compile(String srcPath) {
 
         final JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
         final StandardJavaFileManager fm =
@@ -49,35 +48,43 @@ public class DyXCompiler {
             fm.setLocation(StandardLocation.CLASS_PATH,
                     Collections.singletonList(new File(Env.Api.XPOSED_API.getWorkPath())));
             fm.setLocation(StandardLocation.CLASS_OUTPUT,
-                    Collections.singletonList(new File("/sdcard/DyXposed/classes")));
+                    Collections.singletonList(new File(Env.getClassOutputDir())));
+
+            final Iterable<? extends JavaFileObject> javaFileObjects =
+                    fm.getJavaFileObjectsFromFiles(listJavaSrcFile(srcPath));
+
+            StringWriter sw = new StringWriter();
+            List<String> op = new ArrayList<>();
+            op.add("-verbose");
+
+            javac.getTask(sw, fm, null, op, null, javaFileObjects).call();
+
+            final String dexOutputPath = Env.getInstance().getDexOutputPath();
+            final DxTool dxTool = new DxTool.Builder()
+                    .inputs(Env.getClassOutputDir())
+                    .output(dexOutputPath)
+                    .verbose(true)
+                    .build();
+
+            Log.e(TAG, "compile: " + dexOutputPath);
+            dxTool.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        final Iterable<? extends JavaFileObject> javaFileObjects =
-                fm.getJavaFileObjects(new File("/sdcard/DyXposed/com/poping520/Test.java"));
-
-
-        StringWriter sw = new StringWriter();
-        List<String> op = new ArrayList<>();
-        op.add("-verbose");
-        javac.getTask(sw, fm, null, op, null, javaFileObjects).call();
-
-        Log.e(TAG, "compile: " + sw.toString());
-
-        final List<File> files = listJavaSrcFile(null, "/sdcard/DyXposed");
-        for (File file : files) {
-            Log.e(TAG, "compile: " + file.getAbsolutePath());
-        }
         return false;
     }
 
     /**
      * 遍历目录下所有 java 源码文件
      *
-     * @param srcPath
-     * @return
+     * @param srcPath src目录
+     * @return java文件集合
      */
+    private static List<File> listJavaSrcFile(String srcPath) {
+        return listJavaSrcFile(null, srcPath);
+    }
+
     private static List<File> listJavaSrcFile(@Nullable List<File> list, String srcPath) {
         boolean isRootPath = false;
         if (list == null) {

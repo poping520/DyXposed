@@ -11,7 +11,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.poping520.dyxposed.R;
-import com.poping520.dyxposed.framework.Module;
+import com.poping520.dyxposed.model.Module;
 
 
 import java.util.List;

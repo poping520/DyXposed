@@ -1,4 +1,4 @@
-package com.poping520.dyxposed.framework;
+package com.poping520.dyxposed.model;
 
 import android.support.annotation.Nullable;
 

@@ -7,7 +7,9 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  * @version 1.0.0
  * create on 2018/11/8 17:13
  */
-public interface IXposedEntryProxy {
+public class XposedEntryProxy {
 
-    void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable;
+    void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+
+    }
 }

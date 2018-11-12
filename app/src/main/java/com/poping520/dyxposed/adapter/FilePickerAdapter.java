@@ -1,6 +1,7 @@
 package com.poping520.dyxposed.adapter;
 
 import android.content.Context;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -34,9 +35,9 @@ public class FilePickerAdapter extends RecyclerView.Adapter<FilePickerAdapter.Vi
     @Nullable
     private OnItemSelectedListener mListener;
 
-    public FilePickerAdapter(Context context, File sdcard) {
+    public FilePickerAdapter(Context context) {
         mContext = context;
-        mList = getFileItemList(sdcard);
+        mList = getFileItemList(new File("/sdcard/DyXposed"));
     }
 
     @NonNull
@@ -99,6 +100,7 @@ public class FilePickerAdapter extends RecyclerView.Adapter<FilePickerAdapter.Vi
         if (dir == null || !dir.isDirectory()) return null;
 
         List<FileItem> list = new ArrayList<>();
+
         final File[] files = dir.listFiles();
 
         for (File file : files) {

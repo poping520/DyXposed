@@ -13,7 +13,8 @@ import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleAdapter;
 import com.poping520.dyxposed.framework.BaseMainActivity;
 import com.poping520.dyxposed.framework.DyXCompiler;
-import com.poping520.dyxposed.framework.Module;
+import com.poping520.dyxposed.framework.ModuleManager;
+import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.model.FileItem;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class MainActivity extends BaseMainActivity {
         initFAB();
         initRecyclerViews();
 
-        DyXCompiler.compile();
+        new ModuleManager().loadModule("/sdcard/Dyxposed/module/a.jar");
     }
 
     private void initFAB() {
@@ -65,7 +66,7 @@ public class MainActivity extends BaseMainActivity {
                     break;
 
                 case FOLDER:
-
+                    DyXCompiler.compile(item.file.getAbsolutePath());
                     break;
 
                 case JAVA_SOURCE:
