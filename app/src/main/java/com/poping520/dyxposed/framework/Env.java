@@ -67,7 +67,9 @@ public class Env {
 
         XPOSED_API("api/xposed-api-82.jar"),
 
-        ANDROID_RT("api/android-28.jar");
+        ANDROID_RT("api/android-28.jar"),
+
+        DYXPOSED_API("api/dyxposed-api.jar");
 
         private String assetPath;
 

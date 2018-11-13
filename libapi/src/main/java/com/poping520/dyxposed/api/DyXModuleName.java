@@ -12,9 +12,8 @@ import java.lang.annotation.Target;
  * @version 1.0.0
  * create on 2018/11/13
  */
-@MustElement
+@ElementName("name")
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface DyXModuleName {
-    String value() default "zh";
 }

@@ -15,7 +15,9 @@ import android.view.animation.DecelerateInterpolator;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModulePickerAdapter;
+import com.poping520.dyxposed.framework.ModuleManager;
 import com.poping520.dyxposed.model.FileItem;
+import com.poping520.dyxposed.model.ModuleSource;
 
 import static android.animation.ObjectAnimator.ofFloat;
 
@@ -62,7 +64,9 @@ public class ModulePickerActivity extends AppCompatActivity {
 
             switch (mSelectedFile.type) {
                 case FOLDER:
-
+                    final ModuleSource src = new ModuleSource();
+                    src.path = mSelectedFile.file.getAbsolutePath();
+                    new ModuleManager().parseModule(src);
                     break;
 
                 case ZIP:

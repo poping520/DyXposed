@@ -6,13 +6,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 修饰 Xposed 代理类
+ * 修饰 DyXposed 的入口类
  *
  * @author WangKZ
  * @version 1.0.0
  * create on 2018/11/13
  */
-@MustElement
+@ElementName("entryClassName")
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface DyXEntryClass {

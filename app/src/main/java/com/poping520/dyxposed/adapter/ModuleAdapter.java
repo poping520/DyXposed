@@ -46,10 +46,10 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         final Module module = mList.get(position);
 
-        holder.mName.setText(module.name);
-        holder.mDesc.setText(module.description);
-        holder.mVersion.setText(module.version);
-        //holder.mSwitch.setChecked(module.enable);
+//        holder.mName.setText(module.name);
+//        holder.mDesc.setText(module.description);
+//        holder.mVersion.setText(module.version);
+//        holder.mSwitch.setChecked(module.enable);
     }
 
     @Override

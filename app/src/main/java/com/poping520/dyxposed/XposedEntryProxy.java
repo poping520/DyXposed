@@ -1,11 +1,14 @@
 package com.poping520.dyxposed;
 
 import com.poping520.dyxposed.api.DyXEntryClass;
-import com.poping520.dyxposed.api.DyXLoadPackage;
+import com.poping520.dyxposed.api.DyXEntryMethod;
 import com.poping520.dyxposed.api.DyXModuleDesc;
 import com.poping520.dyxposed.api.DyXModuleName;
 import com.poping520.dyxposed.api.DyXModuleVer;
 import com.poping520.dyxposed.api.DyXTargetApp;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
@@ -18,29 +21,23 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 public class XposedEntryProxy {
 
     @DyXModuleName
-    String name = "测试模块";
-
-    @DyXModuleName("en")
-    String name_en = "test module";
+    Map<String, String> name = new HashMap<>();
 
     @DyXModuleDesc
-    String desc = "仅供测试";
-
-    @DyXModuleDesc("en")
-    String desc_en = "just for test";
+    Map<String, String> desc = new HashMap<>();
 
     @DyXModuleVer
     String version = "1.0.0";
 
     @DyXTargetApp
-    String target = "com.poping520.dyxposed";
-
-    //or
-    @DyXTargetApp
     String[] target_arr = {"com.poping520.dyxposed", "com.android.settings"};
 
+    XposedEntryProxy() {
+        name.put("zh", "测试模块");
+        desc.put("zh", "测试用");
+    }
 
-    @DyXLoadPackage
+    @DyXEntryMethod
     void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
 
     }

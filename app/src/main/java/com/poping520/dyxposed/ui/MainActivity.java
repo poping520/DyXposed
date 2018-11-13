@@ -129,9 +129,9 @@ public class MainActivity extends BaseMainActivity {
         List<Module> list = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             final Module module = new Module();
-            module.name = "Test";
-            module.version = "1.0.0";
-            module.description = "description";
+//            module.name = "Test";
+//            module.version = "1.0.0";
+//            module.description = "description";
             list.add(module);
         }
 

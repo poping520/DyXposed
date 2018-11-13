@@ -59,8 +59,13 @@ public final class DyXCompiler {
         fm.setBootClassJarPath(Env.Api.ANDROID_RT.getWorkPath());
 
         try {
-            fm.setLocation(StandardLocation.CLASS_PATH,
-                    Collections.singletonList(new File(Env.Api.XPOSED_API.getWorkPath())));
+            List<File> api = new ArrayList<>();
+            Collections.addAll(
+                    api,
+                    new File(Env.Api.XPOSED_API.getWorkPath()),
+                    new File(Env.Api.DYXPOSED_API.getWorkPath())
+            );
+            fm.setLocation(StandardLocation.CLASS_PATH, api);
             fm.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(classOutputDir));
 
             final Iterable<? extends JavaFileObject> compilationUnits =
