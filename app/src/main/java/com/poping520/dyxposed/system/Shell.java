@@ -18,7 +18,7 @@ public class Shell {
     static final String LINE_END = "\n";
 
     public static boolean execSU() {
-        return exec(true, false, "").isSuccess;
+        return exec(true, false, "").success;
     }
 
     public static Result exec(boolean isNeedRoot, boolean isNeedResultMsg, String... commands) {
@@ -102,13 +102,13 @@ public class Shell {
     public static class Result {
 
         public int resultCode;
-        public boolean isSuccess;
+        public boolean success;
         public String successMsg;
         public String errorMsg;
 
         private Result(int result, String successMsg, String errorMsg) {
             resultCode = result;
-            this.isSuccess = result == 0;
+            this.success = result == 0;
             this.successMsg = successMsg;
             this.errorMsg = errorMsg;
         }
@@ -117,7 +117,7 @@ public class Shell {
         public String toString() {
             return "Result{" +
                     "resultCode=" + resultCode +
-                    ", isSuccess=" + isSuccess +
+                    ", success=" + success +
                     ", successMsg='" + successMsg + '\'' +
                     ", errorMsg='" + errorMsg + '\'' +
                     '}';

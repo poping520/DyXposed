@@ -1,8 +1,12 @@
 package com.poping520.dyxposed.framework;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.support.annotation.MainThread;
 
-import java.io.File;
+import com.poping520.dyxposed.model.ModuleSource;
 
 import dalvik.system.DexClassLoader;
 
@@ -13,12 +17,36 @@ import dalvik.system.DexClassLoader;
  */
 public class ModuleManager {
 
-    public void loadModule(String dexPath) {
-        final Context context = DyXContext.getApplicationContext();
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+        }
+    };
 
-        final File dir = context.getDir("module", Context.MODE_PRIVATE);
+    @MainThread
+    public void parseModule(ModuleSource src) {
 
-        final DexClassLoader classLoader =
-                new DexClassLoader(dexPath, dir.getAbsolutePath(), null, ClassLoader.getSystemClassLoader());
+        new Thread(() -> {
+            final DyXCompiler.Result ret = DyXCompiler.compile(src.path);
+
+            if (ret.success) {
+                parseModule0(ret.dexPath);
+            }
+
+        }).start();
+    }
+
+
+    private void parseModule0(String dexPath) {
+        final String opDir = DyXContext
+                .getApplicationContext()
+                .getDir("module", Context.MODE_PRIVATE)
+                .getAbsolutePath();
+
+        final DexClassLoader cl =
+                new DexClassLoader(dexPath, opDir, null, null);
+
+
     }
 }

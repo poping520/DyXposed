@@ -1,5 +1,6 @@
 package com.poping520.dyxposed.ui;
 
+import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -10,25 +11,30 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModulePickerAdapter;
 import com.poping520.dyxposed.model.FileItem;
+
+import static android.animation.ObjectAnimator.ofFloat;
 
 /**
  * 选择模块导入
  */
 public class ModulePickerActivity extends AppCompatActivity {
 
-    @Nullable
-    private FileItem selectedFile;
-
     /**
      * 选择的文件/夹
      */
     public static final String EXTRA_NAME_SELECTED_FILE = "SelectedFile";
 
+    @Nullable
+    private FileItem mSelectedFile;
+
     private FloatingActionButton mFab;
+    private boolean mFabState;
+    private ModulePickerAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,10 +56,25 @@ public class ModulePickerActivity extends AppCompatActivity {
 
     private void initFAB() {
         mFab.setOnClickListener(v -> {
+            if (mSelectedFile == null) {
+                return;
+            }
+
+            switch (mSelectedFile.type) {
+                case FOLDER:
+
+                    break;
+
+                case ZIP:
+                    break;
+
+                case JAVA_SOURCE:
+                    break;
+            }
+
             final Intent intent = new Intent();
-            intent.putExtra(EXTRA_NAME_SELECTED_FILE, selectedFile);
+            intent.putExtra(EXTRA_NAME_SELECTED_FILE, mSelectedFile);
             setResult(RESULT_OK, intent);
-            finish();
         });
     }
 
@@ -64,13 +85,58 @@ public class ModulePickerActivity extends AppCompatActivity {
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         rv.setLayoutManager(llm);
 
-        final ModulePickerAdapter adapter = new ModulePickerAdapter(this);
+        mAdapter = new ModulePickerAdapter(this, new ModulePickerAdapter.OnMultiClickListener() {
 
-        adapter.setOnItemSelectedListener(item -> {
-            selectedFile = item;
-            mFab.setVisibility(View.VISIBLE);
+            @Override
+            public void onSingleFileClicked(FileItem item) {
+
+            }
+
+            @Override
+            public void onItemSelected(FileItem item) {
+                mSelectedFile = item;
+                fabScaleAnim(true);
+            }
+
+            @Override
+            public void onReleaseSelected() {
+                fabScaleAnim(false);
+            }
         });
 
-        rv.setAdapter(adapter);
+        rv.setAdapter(mAdapter);
+    }
+
+    // fab 缩放动画
+    private void fabScaleAnim(boolean show) {
+        if (mFabState == show) {
+            return;
+        }
+        mFabState = show;
+
+        if (mFab.getVisibility() != View.VISIBLE) {
+            mFab.setVisibility(View.VISIBLE);
+        }
+        float from, to;
+
+        from = show ? 0f : 1f;
+        to = show ? 1f : 0f;
+
+        final ObjectAnimator scaleX = ofFloat(mFab, "scaleX", from, to)
+                .setDuration(150);
+        scaleX.setInterpolator(new DecelerateInterpolator());
+        scaleX.start();
+
+        final ObjectAnimator scaleY = ofFloat(mFab, "scaleY", from, to)
+                .setDuration(150);
+        scaleY.setInterpolator(new DecelerateInterpolator());
+        scaleY.start();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mAdapter.onBackPressed() == ModulePickerAdapter.NULL_STACK) {
+            super.onBackPressed();
+        }
     }
 }

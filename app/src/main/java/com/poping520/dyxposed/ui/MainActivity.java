@@ -110,7 +110,7 @@ public class MainActivity extends BaseMainActivity {
                     break;
 
                 case FOLDER:
-                    DyXCompiler.compile(item.file.getAbsolutePath());
+
                     break;
 
                 case JAVA_SOURCE:

@@ -12,10 +12,19 @@ import com.poping520.dyxposed.R;
  */
 public enum FileType {
 
+    /**
+     * 文件夹
+     */
     FOLDER(R.drawable.ic_folder_primary_42dp),
 
+    /**
+     * zip 文件
+     */
     ZIP(R.drawable.ic_zip_file_primary_42dp),
 
+    /**
+     * java 文件
+     */
     JAVA_SOURCE(R.mipmap.ic_launcher);
 
 

@@ -19,27 +19,16 @@ public class Module {
     public String name;
 
     /**
-     * 模块的全类名
-     */
-    @MustParam
-    public String proxyClassName;
-
-    /**
-     * 是否启用
-     */
-    public boolean enable;
-
-    /**
      * 模块简述
      */
     @Nullable
     public String description;
 
     /**
-     * 指定要 Hook 应用的包名
+     * 指定要 Hook 应用
      */
     @Nullable
-    public String hookPackageName;
+    public String[] targetApp;
 
     /**
      * 模块版本号

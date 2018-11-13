@@ -1,12 +1,11 @@
 package com.poping520.dyxposed.adapter;
 
-import android.content.Context;
+import android.animation.ObjectAnimator;
+import android.app.Activity;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +15,13 @@ import android.widget.TextView;
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.model.FileItem;
 import com.poping520.dyxposed.model.FileType;
-import com.poping520.dyxposed.util.Arrays;
+import com.poping520.dyxposed.util.DimenUtil;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -36,22 +34,80 @@ public class ModulePickerAdapter extends RecyclerView.Adapter<ModulePickerAdapte
 
     private static final String TAG = "ModulePickerAdapter";
 
-    private Context mContext;
+    private Activity mActivity;
+
+    private final float m20dp;
+
+    @NonNull
     private List<FileItem> mList;
 
-    @Nullable
-    private OnItemSelectedListener mListener;
+    // 模拟一个栈结构
+    @NonNull
+    private final LinkedList<List<FileItem>> mStack;
 
-    public ModulePickerAdapter(Context context) {
-        mContext = context;
-        mList = getFileItemList(Environment.getExternalStorageDirectory());
+    /**
+     * 栈为空，当此时点击返回按钮，应该退出界面
+     */
+    public static final int NULL_STACK = 0x0;
+
+    private OnMultiClickListener mListener;
+
+    // 被选择的条目
+    private FileItem mSelectedItem;
+
+    private View mSelectedItemView;
+
+    public ModulePickerAdapter(Activity activity, OnMultiClickListener onItemSelectedListener) {
+        if (onItemSelectedListener == null) {
+            throw new IllegalArgumentException("onItemSelectedListener is NULL");
+        }
+
+        mActivity = activity;
+        mListener = onItemSelectedListener;
+
+        m20dp = DimenUtil.dp2px(mActivity, 20f);
+
+        mList = getFileItemList(
+                new File(Environment.getExternalStorageDirectory(), "DyXposed")
+        );
+        mStack = new LinkedList<>();
+        // 第一个元素压栈
+        mStack.push(mList);
+
+        if (mList.isEmpty()) {
+            makeNullFolderSnackbar(mActivity.findViewById(android.R.id.content));
+        }
+    }
+
+    /**
+     * 点击返回键 模拟栈操作
+     *
+     * @return 是否为 {@link #NULL_STACK}
+     */
+    public int onBackPressed() {
+        // 栈内至少有一个元素 否则状态异常
+        if (mStack.size() == NULL_STACK)
+            throw new IllegalStateException("this stack must has one element at least");
+
+        // 弹出栈顶元素
+        mStack.pop();
+
+        // 栈已经为空
+        if (mStack.isEmpty()) {
+            return NULL_STACK;
+        } else {
+            // 获取当前栈顶元素
+            mList = mStack.getFirst();
+            notifyDataSetChanged();
+            return ~NULL_STACK;
+        }
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         final View view = LayoutInflater
-                .from(mContext)
+                .from(mActivity)
                 .inflate(R.layout.item_recycler_file_picker, parent, false);
         return new ViewHolder(view);
     }
@@ -63,52 +119,92 @@ public class ModulePickerAdapter extends RecyclerView.Adapter<ModulePickerAdapte
         holder.mIcon.setImageResource(item.type.getResId());
         holder.mName.setText(item.name);
 
-        switch (item.type) {
-            case ZIP:
-                holder.itemView.setOnClickListener(v -> {
-                    if (mListener != null) {
-                        mListener.onItemSelected(item);
-                    }
-                });
-                break;
+        // 平移动画
+        ObjectAnimator.ofFloat(holder.itemView, "translationY", m20dp, 0f)
+                .setDuration(300)
+                .start();
 
-            case FOLDER:
-                holder.itemView.setOnClickListener(v -> {
+        // 长按操作
+        holder.itemView.setLongClickable(true);
+        holder.itemView.setOnLongClickListener(v -> {
+            if (hasSelectedItem()) {
+                releaseSelected(false);
+            }
+            onItemSelected(holder.itemView, item);
+
+            return true;
+        });
+
+        // 点击操作
+        holder.itemView.setOnClickListener(v -> {
+            if (hasSelectedItem()) {
+                releaseSelected(true);
+            }
+
+            switch (item.type) {
+                case ZIP:
+                    mListener.onSingleFileClicked(item);
+                    break;
+
+                case FOLDER:
                     final List<FileItem> list = getFileItemList(item.file);
                     if (list.size() == 0) {
-                        Snackbar.make(holder.itemView, R.string.folder_is_empty,
-                                Snackbar.LENGTH_SHORT).show();
+                        makeNullFolderSnackbar(holder.itemView);
                     } else {
                         mList = list;
                         notifyDataSetChanged();
+
+                        //压栈
+                        mStack.push(mList);
                     }
-                });
-                break;
+                    break;
 
-            case JAVA_SOURCE:
-                break;
-        }
-
-
-        holder.itemView.setLongClickable(true);
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-
-
-                return true;
+                case JAVA_SOURCE:
+                    break;
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return mList == null || mList.isEmpty() ? 0 : mList.size();
+        return mList.isEmpty() ? 0 : mList.size();
+    }
+
+    // 选中条目
+    private void onItemSelected(View itemView, FileItem item) {
+        mSelectedItemView = itemView;
+        mSelectedItem = item;
+        mSelectedItemView.setBackgroundColor(mActivity.getResources().getColor(R.color.item_selected_bg));
+        mListener.onItemSelected(mSelectedItem);
+    }
+
+    // 是否有被选中的条目
+    private boolean hasSelectedItem() {
+        return mSelectedItem != null;
+    }
+
+    /**
+     * 重置选中
+     *
+     * @param notify 是否通知监听回调
+     */
+    private void releaseSelected(boolean notify) {
+        mSelectedItemView.setBackground(null);
+        mSelectedItem = null;
+        mSelectedItemView = null;
+        if (notify) {
+            mListener.onReleaseSelected();
+        }
+    }
+
+    private void makeNullFolderSnackbar(View view) {
+        Snackbar.make(view, R.string.folder_is_empty, Snackbar.LENGTH_SHORT).show();
     }
 
     // 条件性遍历目录
+    @NonNull
     private List<FileItem> getFileItemList(File dir) {
-        if (dir == null || !dir.isDirectory()) return null;
+        if (dir == null || !dir.isDirectory()) return Collections.emptyList();
 
         final File[] files = dir.listFiles(pathname -> {
             final String name = pathname.getName();
@@ -182,20 +278,25 @@ public class ModulePickerAdapter extends RecyclerView.Adapter<ModulePickerAdapte
         }
     }
 
-    public static void main(String[] args) {
-        System.out.println('0' + 0);
-        System.out.println('A' + 0);
-        System.out.println('Z' + 0);
-        System.out.println('a' + 0);
-        System.out.println('z' + 0);
-    }
+    /**
+     * {@link ModulePickerAdapter} 监听器
+     */
+    public interface OnMultiClickListener {
 
-    public void setOnItemSelectedListener(OnItemSelectedListener listener) {
-        mListener = listener;
-    }
+        /**
+         * 点击单个文件
+         */
+        void onSingleFileClicked(FileItem item);
 
-    public interface OnItemSelectedListener {
+        /**
+         * 选中文件 or 文件夹
+         */
         void onItemSelected(FileItem item);
+
+        /**
+         * 取消选中
+         */
+        void onReleaseSelected();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

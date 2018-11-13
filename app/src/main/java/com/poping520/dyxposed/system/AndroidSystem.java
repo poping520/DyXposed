@@ -36,7 +36,7 @@ public class AndroidSystem {
     // 是否安装 Magisk 框架
     private static boolean isMagiskInstalled() {
         final Shell.Result ret = Shell.exec(false, false, "magisk -V");
-        return new File("/sbin/magisk").exists() || ret.isSuccess;
+        return new File("/sbin/magisk").exists() || ret.success;
     }
 
     // 检查 su 二进制文件是否存在

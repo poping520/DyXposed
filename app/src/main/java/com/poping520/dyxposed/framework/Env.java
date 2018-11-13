@@ -3,7 +3,6 @@ package com.poping520.dyxposed.framework;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
-import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 
 import com.poping520.dyxposed.system.AndroidSystem;
@@ -136,6 +135,9 @@ public class Env {
                 || DyXContext.isLaunchFirstTime();
     }
 
+    /**
+     * @return class 输出目录
+     */
     static String getClassOutputDir() {
         FileUtil.mkDirIfNotExists(CLASS_OUTPUT_DIR);
         return CLASS_OUTPUT_DIR;
@@ -144,7 +146,6 @@ public class Env {
     /**
      * @return dex 输出路径
      */
-    @WorkerThread
     public String getDexOutputPath() {
         String name = String.valueOf(System.currentTimeMillis());
 
@@ -184,6 +185,6 @@ public class Env {
             cmds[3] = "chcon -R u:object_r:media_rw_data_file:s0 " + ROOT_DIR;
         }
 
-        return Shell.exec(true, true, cmds).isSuccess;
+        return Shell.exec(true, true, cmds).success;
     }
 }

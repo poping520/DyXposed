@@ -49,7 +49,7 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
         holder.mName.setText(module.name);
         holder.mDesc.setText(module.description);
         holder.mVersion.setText(module.version);
-        holder.mSwitch.setChecked(module.enable);
+        //holder.mSwitch.setChecked(module.enable);
     }
 
     @Override

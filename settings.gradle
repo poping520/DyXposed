@@ -1,1 +1,1 @@
-include ':app', ':libdx', ':libjavac'
+include ':app', ':libdx', ':libjavac', ':libapi'

@@ -19,6 +19,22 @@ import java.io.InputStream;
 public class FileUtil {
 
     /**
+     * 删除文件夹
+     *
+     * @param path 绝对路径
+     * @return 是否成功
+     */
+    public static boolean removeDir(String path) {
+        String cmd = "rm -rf " + path;
+        return Shell.exec(false, false, cmd).success;
+    }
+
+
+    public static boolean removeDir(File dir) {
+        return removeDir(dir.getAbsolutePath());
+    }
+
+    /**
      * 创建文件夹 如果不存在
      *
      * @param path 绝对路径
@@ -40,11 +56,10 @@ public class FileUtil {
                 return true;
             } else {
                 final String cmd = String.format("mkdir -p %s", path);
-                return Shell.exec(false, false, cmd).isSuccess;
+                return Shell.exec(false, false, cmd).success;
             }
         }
     }
-
 
     /**
      * 从 APK Assets 中释放文件

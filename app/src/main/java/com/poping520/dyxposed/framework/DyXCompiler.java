@@ -1,10 +1,11 @@
 package com.poping520.dyxposed.framework;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.libdx.DxTool;
+import com.poping520.dyxposed.util.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +16,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
@@ -22,43 +25,65 @@ import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
 /**
+ * DyXposed 编译器
+ * <p>
  * Created by WangKZ on 18/11/11.
  *
  * @author poping520
  * @version 1.0.0
  */
-public class DyXCompiler {
+public final class DyXCompiler {
 
     private static final String TAG = "DyXCompiler";
 
-    /**
-     * 将 java 源码编译为 dex 文件
-     *
-     * @return
-     */
-    public static boolean compile(String srcPath) {
+    // java => class => dex
+    public static Result compile(String srcPath) {
+        final Result result = new Result();
+        result.success = false;
+
+        @NonNull final List<File> javaFiles = listJavaSrcFile(srcPath);
+
+        if (javaFiles.size() <= 0) {
+            result.errMsg = "该目录没有 java 源码文件";
+            return result;
+        }
+
+        final File classOutputDir = new File(Env.getClassOutputDir());
 
         final JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+        DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
+
         final StandardJavaFileManager fm =
-                javac.getStandardFileManager(null, Locale.getDefault(), Charset.forName("UTF-8"));
+                javac.getStandardFileManager(collector, Locale.getDefault(), Charset.forName("UTF-8"));
 
         fm.setBootClassJarPath(Env.Api.ANDROID_RT.getWorkPath());
 
         try {
             fm.setLocation(StandardLocation.CLASS_PATH,
                     Collections.singletonList(new File(Env.Api.XPOSED_API.getWorkPath())));
-            fm.setLocation(StandardLocation.CLASS_OUTPUT,
-                    Collections.singletonList(new File(Env.getClassOutputDir())));
+            fm.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(classOutputDir));
 
-            final Iterable<? extends JavaFileObject> javaFileObjects =
-                    fm.getJavaFileObjectsFromFiles(listJavaSrcFile(srcPath));
+            final Iterable<? extends JavaFileObject> compilationUnits =
+                    fm.getJavaFileObjectsFromFiles(javaFiles);
 
             StringWriter sw = new StringWriter();
             List<String> op = new ArrayList<>();
             op.add("-verbose");
 
-            javac.getTask(sw, fm, null, op, null, javaFileObjects).call();
+            boolean ret = javac.getTask(sw, fm, collector, op, null, compilationUnits).call();
 
+            if (!ret) {
+                final List<Diagnostic<? extends JavaFileObject>> diagnostics = collector.getDiagnostics();
+                StringBuilder sb = new StringBuilder();
+                for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics) {
+                    sb.append(String.format("Error on line %s in %s%n", diagnostic.getLineNumber(), diagnostic.getSource().toUri()));
+                }
+                sb.append("\n").append(sw.toString());
+                result.errMsg = sb.toString();
+                return result;
+            }
+
+            // dx start
             final String dexOutputPath = Env.getInstance().getDexOutputPath();
             final DxTool dxTool = new DxTool.Builder()
                     .inputs(Env.getClassOutputDir())
@@ -66,13 +91,41 @@ public class DyXCompiler {
                     .verbose(true)
                     .build();
 
-            Log.e(TAG, "compile: " + dexOutputPath);
-            dxTool.start();
+            ret = dxTool.start();
+
+            if (!ret) {
+                //TODO
+                result.errMsg = "dx error";
+                return result;
+            }
+
+            result.success = true;
+            result.dexPath = dexOutputPath;
+            return result;
+
         } catch (IOException e) {
             e.printStackTrace();
+            result.errMsg = e.toString();
+        } finally {
+            try {
+                fm.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            FileUtil.removeDir(classOutputDir);
         }
 
-        return false;
+        return result;
+    }
+
+    static class Result {
+
+        boolean success;
+
+        String dexPath;
+
+        String errMsg;
     }
 
     /**
@@ -81,10 +134,12 @@ public class DyXCompiler {
      * @param srcPath src目录
      * @return java文件集合
      */
+    @NonNull
     private static List<File> listJavaSrcFile(String srcPath) {
         return listJavaSrcFile(null, srcPath);
     }
 
+    @NonNull
     private static List<File> listJavaSrcFile(@Nullable List<File> list, String srcPath) {
         boolean isRootPath = false;
         if (list == null) {

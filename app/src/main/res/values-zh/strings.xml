@@ -24,5 +24,5 @@
     </string>
 
     <string name="file_picker_label">导入模块</string>
-    <string name="folder_is_empty">空文件夹</string>
+    <string name="folder_is_empty">该目录内容为空</string>
 </resources>
