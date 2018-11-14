@@ -4,7 +4,9 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Log;
 
+import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.system.AndroidSystem;
 import com.poping520.dyxposed.system.Shell;
 import com.poping520.dyxposed.util.CryptoUtil;
@@ -12,6 +14,8 @@ import com.poping520.dyxposed.util.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
+
+import dalvik.system.PathClassLoader;
 
 /**
  * WORK DIR     /sdcard/DyXposed
@@ -65,21 +69,72 @@ public class Env {
 
     public enum Api {
 
-        XPOSED_API("api/xposed-api-82.jar"),
+        API_XPOSED("api/api-xposed-82.jar", "87B9A136AE65B583E78B02F51C27D4A8"),
 
-        ANDROID_RT("api/android-28.jar"),
+        API_ANDROID("api/api-android-28.jar", "F0A233AD65F0B1CC5CA461B404767658"),
 
-        DYXPOSED_API("api/dyxposed-api.jar");
+        API_DYXPOSED("api/api-dyxposed-1.jar", "03A424395F0F1E25D51FCAD912CFE44D");
 
         private String assetPath;
+        private String md5;
 
-        Api(String assetPath) {
+        Api(String assetPath, String md5) {
             this.assetPath = assetPath;
+            this.md5 = md5;
         }
 
-        String getWorkPath() {
-            return WORK_DIR + File.separator + assetPath;
+        String release() {
+            return releaseAsset(assetPath, md5);
         }
+    }
+
+    public enum Lib {
+
+        LIB_XPOSED("lib/lib-xposed.jar", "956145163B20889A7D895020F197E813"),
+
+        LIB_DYXPOSED("lib/lib-dyxposed.jar", null);
+
+        private String assetPath;
+        private String md5;
+
+        Lib(String assetPath, String md5) {
+            this.assetPath = assetPath;
+            this.md5 = md5;
+        }
+
+        String release() {
+            if (LIB_XPOSED.equals(this))
+                return releaseAsset(assetPath, md5);
+            else
+                return releaseDyXposedLib(assetPath);
+        }
+    }
+
+    private static String releaseDyXposedLib(String relativePath) {
+        final File file = new File(WORK_DIR, relativePath);
+        final String absPath = file.getAbsolutePath();
+        if (file.exists()) {
+            return absPath;
+        }
+
+        if (DyXCompiler.dx(Api.API_DYXPOSED.release(), absPath)) {
+            return absPath;
+        } else {
+            throw new DyXRuntimeException("");
+        }
+    }
+
+    private static String releaseAsset(String assetPath, String md5) {
+        final File file = new File(WORK_DIR, assetPath);
+        if (!FileUtil.verifyMD5(file, md5)) {
+            try {
+                FileUtil.unZipAsset(DyXContext.getApplicationContext(), assetPath, file.getAbsolutePath(), true);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new DyXRuntimeException("");
+            }
+        }
+        return file.getAbsolutePath();
     }
 
 
@@ -95,22 +150,6 @@ public class Env {
 
     private Env() {
         mAppSp = DyXContext.getAppSharedPrefs();
-    }
-
-    void init() {
-
-        // 检查编译依赖库
-        for (Api lib : Api.values()) {
-            final String workPath = lib.getWorkPath();
-            final File libFile = new File(workPath);
-            if (!libFile.exists()) {
-                try {
-                    FileUtil.unZipAsset(DyXContext.getApplicationContext(), lib.assetPath, workPath, true);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 
     /**
@@ -138,10 +177,17 @@ public class Env {
     }
 
     /**
+     * @return 获取 DyXposed 模块的类加载器
+     */
+    public ClassLoader getDyXModuleClassLoader() {
+        return new PathClassLoader(Lib.LIB_XPOSED.release(), getClass().getClassLoader());
+    }
+
+    /**
      * @return class 输出目录
      */
     static String getClassOutputDir() {
-        FileUtil.mkDirIfNotExists(CLASS_OUTPUT_DIR);
+        FileUtil.mkDirIfNotExists(CLASS_OUTPUT_DIR, true);
         return CLASS_OUTPUT_DIR;
     }
 
@@ -151,7 +197,7 @@ public class Env {
     public String getDexOutputPath() {
         String name = String.valueOf(System.currentTimeMillis());
 
-        final String md5 = CryptoUtil.getMD5HexStr(name);
+        final String md5 = CryptoUtil.getStringMD5(name);
         if (!TextUtils.isEmpty(md5)) {
             name = md5;
         }
@@ -160,7 +206,7 @@ public class Env {
         // 检查 dex 输出文件夹
         if (getWorkMode() == MODE_NORMAL) {
             dexOutputDir = WORK_DIR + DEX_RELATIVE_DIR;
-            FileUtil.mkDirIfNotExists(dexOutputDir);
+            FileUtil.mkDirIfNotExists(dexOutputDir, true);
 
         } else {
             dexOutputDir = ROOT_DIR + DEX_RELATIVE_DIR;

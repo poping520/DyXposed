@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * @version 1.0.0
  * create on 2018/11/13 17:31
  */
-@ElementName("target")
+@DyXApiElement("version")
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface DyXModuleVer {

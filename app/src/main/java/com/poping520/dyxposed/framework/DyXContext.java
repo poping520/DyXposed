@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.StringRes;
 
 import com.poping520.dyxposed.BuildConfig;
 import com.poping520.dyxposed.exception.DyXRuntimeException;
@@ -51,6 +52,14 @@ public class DyXContext {
             throw new DyXRuntimeException("...");
 
         return context;
+    }
+
+    public static String getString(@StringRes int resId) {
+        return getApplicationContext().getString(resId);
+    }
+
+    public static String getString(@StringRes int resId, Object... formatArgs) {
+        return getApplicationContext().getString(resId, formatArgs);
     }
 
     public static SharedPreferences getAppSharedPrefs() {

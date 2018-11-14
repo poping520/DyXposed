@@ -12,6 +12,9 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
-public @interface ElementName {
+@interface DyXApiElement {
+    /**
+     * @return Module Class 的成员变量名
+     */
     String value();
 }

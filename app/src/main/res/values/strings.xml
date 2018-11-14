@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DyXposed</string>
     <string name="action_settings">Settings</string>
@@ -24,4 +25,14 @@
 
     <string name="file_picker_label">导入模块</string>
     <string name="folder_is_empty">this folder is empty</string>
+
+    <string name="module_field_name">module name</string>
+    <string name="module_field_dex_path">module dex file path</string>
+    <string name="module_field_entry_class">module entry class</string>
+    <string name="module_field_entry_method">module entry method</string>
+
+    <string name="process_err_entry_clz_not_find">DyXposed entry class is not find</string>
+    <string name="process_err_entry_method_not_find">DyXposed entry method is not find</string>
+    <string name="process_err_entry_clz_constructor_not_access">DyXposed entry class lack of constructor which is no parameter</string>
+    <string name="process_err_module_lack_element">this module lack of must element：%1$s</string>
 </resources>

@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.libdx.DxTool;
+import com.poping520.dyxposed.model.Result;
 import com.poping520.dyxposed.util.FileUtil;
 
 import java.io.File;
@@ -36,10 +37,14 @@ public final class DyXCompiler {
 
     private static final String TAG = "DyXCompiler";
 
-    // java => class => dex
-    public static Result compile(String srcPath) {
-        final Result result = new Result();
-        result.success = false;
+    /**
+     * java => class => dex
+     *
+     * @param srcPath
+     * @return Result obj = dexPath
+     */
+    public static Result<String> compile(String srcPath) {
+        final Result<String> result = new Result<>();
 
         @NonNull final List<File> javaFiles = listJavaSrcFile(srcPath);
 
@@ -56,14 +61,14 @@ public final class DyXCompiler {
         final StandardJavaFileManager fm =
                 javac.getStandardFileManager(collector, Locale.getDefault(), Charset.forName("UTF-8"));
 
-        fm.setBootClassJarPath(Env.Api.ANDROID_RT.getWorkPath());
+        fm.setBootClassJarPath(Env.Api.API_ANDROID.release());
 
         try {
             List<File> api = new ArrayList<>();
             Collections.addAll(
                     api,
-                    new File(Env.Api.XPOSED_API.getWorkPath()),
-                    new File(Env.Api.DYXPOSED_API.getWorkPath())
+                    new File(Env.Api.API_XPOSED.release()),
+                    new File(Env.Api.API_DYXPOSED.release())
             );
             fm.setLocation(StandardLocation.CLASS_PATH, api);
             fm.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(classOutputDir));
@@ -90,13 +95,7 @@ public final class DyXCompiler {
 
             // dx start
             final String dexOutputPath = Env.getInstance().getDexOutputPath();
-            final DxTool dxTool = new DxTool.Builder()
-                    .inputs(Env.getClassOutputDir())
-                    .output(dexOutputPath)
-                    .verbose(true)
-                    .build();
-
-            ret = dxTool.start();
+            ret = dx(Env.getClassOutputDir(), dexOutputPath);
 
             if (!ret) {
                 //TODO
@@ -104,8 +103,8 @@ public final class DyXCompiler {
                 return result;
             }
 
-            result.success = true;
-            result.dexPath = dexOutputPath;
+            result.succ = true;
+            result.obj = dexOutputPath;
             return result;
 
         } catch (IOException e) {
@@ -118,19 +117,27 @@ public final class DyXCompiler {
                 e.printStackTrace();
             }
 
-            FileUtil.removeDir(classOutputDir);
+            FileUtil.remove(classOutputDir);
         }
 
         return result;
     }
 
-    static class Result {
+    /**
+     * 将 class 文件转为 dex
+     *
+     * @param inputPath  输入文件路径
+     * @param outputPath 输出文件路径
+     * @return
+     */
+    public static boolean dx(String inputPath, String outputPath) {
+        final DxTool dxTool = new DxTool.Builder()
+                .inputs(inputPath)
+                .output(outputPath)
+                .verbose(true)
+                .build();
 
-        boolean success;
-
-        String dexPath;
-
-        String errMsg;
+        return dxTool.start();
     }
 
     /**

@@ -2,7 +2,6 @@ package com.poping520.dyxposed.util;
 
 import android.content.Context;
 
-import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.system.Shell;
 
 import java.io.BufferedOutputStream;
@@ -16,7 +15,12 @@ import java.io.InputStream;
  * @version 1.0.0
  * create on 2018/11/9 16:37
  */
-public class FileUtil {
+public final class FileUtil {
+
+    public static boolean verifyMD5(File file, String md5) {
+        if (!file.exists()) return false;
+        return md5.equalsIgnoreCase(CryptoUtil.getFileMD5(file));
+    }
 
     /**
      * 删除文件夹
@@ -24,33 +28,38 @@ public class FileUtil {
      * @param path 绝对路径
      * @return 是否成功
      */
-    public static boolean removeDir(String path) {
+    public static boolean remove(String path) {
         String cmd = "rm -rf " + path;
         return Shell.exec(false, false, cmd).success;
     }
 
 
-    public static boolean removeDir(File dir) {
-        return removeDir(dir.getAbsolutePath());
+    public static boolean remove(File dir) {
+        return remove(dir.getAbsolutePath());
     }
 
     /**
      * 创建文件夹 如果不存在
      *
-     * @param path 绝对路径
+     * @param path  绝对路径
+     * @param force 存在同名文件，是否覆盖
      * @return 是否成功
      */
-    public static boolean mkDirIfNotExists(String path) {
+    public static boolean mkDirIfNotExists(String path, boolean force) {
         final File dir = new File(path);
 
         if (!dir.isAbsolute())
             throw new IllegalArgumentException("not absolute path");
 
         if (dir.exists()) {
-            if (dir.isFile())
-                throw new DyXRuntimeException("已存在同名文件");
-            else
-                return dir.isDirectory();
+            if (dir.isDirectory())
+                return true;
+            else {
+                if (remove(path))
+                    return mkDirIfNotExists(path, force);
+                else
+                    return false;
+            }
         } else {
             if (dir.mkdirs()) {
                 return true;
@@ -73,7 +82,7 @@ public class FileUtil {
     public static void unZipAsset(Context context, String asset, String dst, boolean force) throws IOException {
         final File dstFile = new File(dst);
 
-        if (!mkDirIfNotExists(dstFile.getAbsolutePath())) {
+        if (!mkDirIfNotExists(dstFile.getAbsolutePath(), force)) {
             throw new IOException("创建文件夹失败");
         }
 

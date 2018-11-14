@@ -152,8 +152,6 @@ public abstract class BaseMainActivity extends AppCompatActivity {
         if (!isGranted) {
             return;
         }
-
-        Env.getInstance().init();
     }
 
     protected void killSelf() {

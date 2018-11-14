@@ -8,6 +8,7 @@ import com.poping520.dyxposed.api.DyXModuleVer;
 import com.poping520.dyxposed.api.DyXTargetApp;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -34,7 +35,10 @@ public class XposedEntryProxy {
 
     XposedEntryProxy() {
         name.put("zh", "测试模块");
-        desc.put("zh", "测试用");
+        name.put("en", "Test Module");
+
+        desc.put(Locale.CHINESE.getLanguage(), "仅供测试");
+        desc.put(Locale.ENGLISH.getLanguage(), "just for test");
     }
 
     @DyXEntryMethod

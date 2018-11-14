@@ -2,7 +2,9 @@ package com.poping520.dyxposed.model;
 
 import android.support.annotation.Nullable;
 
-import com.poping520.dyxposed.annotation.MustParam;
+import com.poping520.dyxposed.R;
+import com.poping520.dyxposed.annotation.MustNonNull;
+import com.poping520.dyxposed.framework.DyXContext;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -13,12 +15,13 @@ import java.util.Map;
  * @author poping520
  * @version 1.0.0
  */
+@SuppressWarnings("all")
 public class Module {
 
     /**
      * 模块名称
      */
-    @MustParam
+    @MustNonNull(R.string.module_field_name)
     public Map<String, String> name;
 
     /**
@@ -42,20 +45,25 @@ public class Module {
     /**
      * dex 文件路径
      */
-    @MustParam
+    @MustNonNull(R.string.module_field_dex_path)
     public String dexPath;
 
     /**
      * 入口类 类名
      */
-    @MustParam
-    public String entryClassName;
+    @MustNonNull(R.string.module_field_entry_class)
+    public String entryClass;
 
     /**
      * 入口 方法名
      */
-    @MustParam
-    public String entryMethodName;
+    @MustNonNull(R.string.module_field_entry_method)
+    public String entryMethod;
+
+    /**
+     * 开启状态
+     */
+    public boolean enable;
 
     @Override
     public String toString() {
@@ -65,8 +73,8 @@ public class Module {
                 ", version='" + version + '\'' +
                 ", target=" + Arrays.toString(target) +
                 ", dexPath='" + dexPath + '\'' +
-                ", entryClassName='" + entryClassName + '\'' +
-                ", entryMethodName='" + entryMethodName + '\'' +
+                ", entryClass='" + entryClass + '\'' +
+                ", entryMethod='" + entryMethod + '\'' +
                 '}';
     }
 }

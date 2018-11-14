@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * @version 1.0.0
  * create on 2018/11/13
  */
-@ElementName("entryMethodName")
+@DyXApiElement("entryMethod")
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface DyXEntryMethod {
