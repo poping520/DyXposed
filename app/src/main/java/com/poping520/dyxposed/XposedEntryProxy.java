@@ -2,7 +2,9 @@ package com.poping520.dyxposed;
 
 import com.poping520.dyxposed.api.DyXEntryClass;
 import com.poping520.dyxposed.api.DyXEntryMethod;
+import com.poping520.dyxposed.api.DyXModuleAuthor;
 import com.poping520.dyxposed.api.DyXModuleDesc;
+import com.poping520.dyxposed.api.DyXModuleID;
 import com.poping520.dyxposed.api.DyXModuleName;
 import com.poping520.dyxposed.api.DyXModuleVer;
 import com.poping520.dyxposed.api.DyXTargetApp;
@@ -20,6 +22,12 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  */
 @DyXEntryClass
 public class XposedEntryProxy {
+
+    @DyXModuleID
+    String id = "dyxposed-test";
+
+    @DyXModuleAuthor
+    String author = "biubiubiu";
 
     @DyXModuleName
     Map<String, String> name = new HashMap<>();

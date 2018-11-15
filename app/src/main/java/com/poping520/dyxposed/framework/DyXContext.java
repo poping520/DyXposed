@@ -22,6 +22,8 @@ public class DyXContext {
         private Activity mMainActivity;
     }
 
+    public static final String APPLICATION_NAME = "DyXposed";
+
     private static final String SPK_LAUNCH_TIMES = "LaunchTimes";
 
     private final InnerHolder mHolder;

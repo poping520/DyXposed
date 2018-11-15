@@ -4,8 +4,11 @@ import android.content.Context;
 
 import com.poping520.dyxposed.system.Shell;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +19,32 @@ import java.io.InputStream;
  * create on 2018/11/9 16:37
  */
 public final class FileUtil {
+
+    /**
+     * 文件转字节数组
+     *
+     * @param path   文件路径
+     * @param delete 是否删除
+     * @return byte 数组
+     */
+    public static byte[] readBytes(String path, boolean delete) throws IOException {
+        final File file = new File(path);
+        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        byte[] buf = new byte[100 * 1024];
+        int len;
+        while ((len = bis.read(buf)) != -1) {
+            baos.write(buf, 0, len);
+        }
+
+        if (delete) {
+            if (!file.delete()) {
+                Shell.exec(false, false, "rm -rf " + path);
+            }
+        }
+        return baos.toByteArray();
+    }
 
     public static boolean verifyMD5(File file, String md5) {
         if (!file.exists()) return false;
@@ -99,7 +128,7 @@ public final class FileUtil {
         final InputStream is = context.getAssets().open(asset);
         final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(dst));
 
-        byte[] buf = new byte[1024];
+        byte[] buf = new byte[100 * 1024];
         int len;
         while ((len = is.read(buf)) != -1) {
             bos.write(buf, 0, len);

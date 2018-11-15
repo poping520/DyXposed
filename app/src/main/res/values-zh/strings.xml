@@ -26,8 +26,7 @@
     <string name="file_picker_label">导入模块</string>
     <string name="folder_is_empty">该目录内容为空</string>
 
-    <string name="module_field_name">模块名称</string>
-    <string name="module_field_dex_path">模块 Dex 文件路径</string>
+    <string name="module_field_id">模块标识</string>
     <string name="module_field_entry_class">模块入口类</string>
     <string name="module_field_entry_method">模块入口方法</string>
 

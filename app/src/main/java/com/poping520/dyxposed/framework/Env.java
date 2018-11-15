@@ -73,7 +73,7 @@ public class Env {
 
         API_ANDROID("api/api-android-28.jar", "F0A233AD65F0B1CC5CA461B404767658"),
 
-        API_DYXPOSED("api/api-dyxposed-1.jar", "03A424395F0F1E25D51FCAD912CFE44D");
+        API_DYXPOSED("api/api-dyxposed-2.jar", "DCD0E4699CD28C9451D4DEEDF610F009");
 
         private String assetPath;
         private String md5;

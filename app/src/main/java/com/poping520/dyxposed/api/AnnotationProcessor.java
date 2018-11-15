@@ -30,6 +30,8 @@ public final class AnnotationProcessor {
 
     @SuppressWarnings("unchecked")
     private static final Class<? extends Annotation>[] API_ANNOTATION_CLASSES = new Class[]{
+            DyXModuleID.class,
+            DyXModuleAuthor.class,
             DyXModuleName.class,
             DyXModuleDesc.class,
             DyXModuleVer.class,
@@ -42,7 +44,6 @@ public final class AnnotationProcessor {
 
         final Module moduleClzObj = new Module();
         final Class<Module> moduleClz = Module.class;
-        moduleClzObj.dexPath = moduleDexPath;
 
         // 代理/入口类确认
         Class<?> entryClz = findEntryClass(moduleDexPath);
@@ -174,7 +175,10 @@ public final class AnnotationProcessor {
             final Enumeration<String> entries = dexFile.entries();
 
             while (entries.hasMoreElements()) {
-                final Class clz = dexFile.loadClass(entries.nextElement(), Env.getInstance().getDyXModuleClassLoader());
+                final Class clz = dexFile.loadClass(
+                        entries.nextElement(),
+                        Env.getInstance().getDyXModuleClassLoader()
+                );
                 if (clz.isAnnotationPresent(DyXEntryClass.class)) {
                     entryClz = clz;
                     break;
@@ -194,7 +198,16 @@ public final class AnnotationProcessor {
         for (Method method : entryClzMethods) {
             method.setAccessible(true);
             if (method.isAnnotationPresent(DyXEntryMethod.class)) {
-                entryMethod = method;
+                // 方法参数校验
+                final Class<?>[] parameterTypes = method.getParameterTypes();
+                try {
+                    if ("de.robv.android.xposed.callbacks.XC_LoadPackage$LoadPackageParam"
+                            .equals(parameterTypes[0].getName())) {
+                        entryMethod = method;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 break;
             }
         }

@@ -4,7 +4,6 @@ import android.support.annotation.Nullable;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.annotation.MustNonNull;
-import com.poping520.dyxposed.framework.DyXContext;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -19,13 +18,27 @@ import java.util.Map;
 public class Module {
 
     /**
-     * 模块名称
+     * 模块唯一标识
      */
-    @MustNonNull(R.string.module_field_name)
+    @MustNonNull(R.string.module_field_id)
+    public String id;
+
+    /**
+     * 模块作者
+     */
+    @Nullable
+    public String author;
+
+    /**
+     * 模块名称
+     * 转成 JSONObject 字符串保存
+     */
+    @Nullable
     public Map<String, String> name;
 
     /**
      * 模块简述
+     * 转成 JSONObject 字符串保存
      */
     @Nullable
     public Map<String, String> desc;
@@ -38,15 +51,10 @@ public class Module {
 
     /**
      * 指定要 Hook 应用
+     * 转成 JSONArray 字符串保存
      */
     @Nullable
     public String[] target;
-
-    /**
-     * dex 文件路径
-     */
-    @MustNonNull(R.string.module_field_dex_path)
-    public String dexPath;
 
     /**
      * 入口类 类名
@@ -68,13 +76,15 @@ public class Module {
     @Override
     public String toString() {
         return "Module{" +
-                "name=" + name +
+                "id='" + id + '\'' +
+                ", author='" + author + '\'' +
+                ", name=" + name +
                 ", desc=" + desc +
                 ", version='" + version + '\'' +
                 ", target=" + Arrays.toString(target) +
-                ", dexPath='" + dexPath + '\'' +
                 ", entryClass='" + entryClass + '\'' +
                 ", entryMethod='" + entryMethod + '\'' +
+                ", enable=" + enable +
                 '}';
     }
 }
