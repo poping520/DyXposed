@@ -5,6 +5,9 @@
     <string name="go_on">continue</string>
     <string name="exit_app">exit app</string>
     <string name="warning">warning</string>
+    <string name="ok">OK</string>
+    <string name="cancel">cancel</string>
+    <string name="success">success</string>
     <string name="understand">知道了</string>
 
     <string name="dialog_msg_xposed_module_not_active"></string>
@@ -34,4 +37,12 @@
     <string name="process_err_entry_method_not_find">DyXposed entry method is not find</string>
     <string name="process_err_entry_clz_constructor_not_access">DyXposed entry class lack of constructor which is no parameter</string>
     <string name="process_err_module_lack_element">this module lack of must element：%1$s</string>
+
+    <string name="dialog_title_compile_failed">compile failed</string>
+    <string name="dialog_title_illegal_module">illegal module</string>
+    <string name="dialog_msg_module_add_succ">模块 %1$s 添加成功</string>
+    <string name="dialog_title_upgrade_module">upgrade module</string>
+    <string name="dialog_msg_upgrade_module">
+        <Date><![CDATA[你确定要升级 <b>%1$s</b> 吗？当前：%2$s 新版：%2$s]]></Date>
+    </string>
 </resources>

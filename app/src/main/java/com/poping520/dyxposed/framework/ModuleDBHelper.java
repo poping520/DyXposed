@@ -46,7 +46,7 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
      * 向数据库插入一个模块
      *
      * @param module  模块对象
-     * @param dexData 模块 dex 文件 (.jar)
+     * @param dexData 模块 dex(.jar) 字节数组
      */
     public void insert(Module module, byte[] dexData) {
         final SQLiteDatabase db = getWritableDatabase();
@@ -66,8 +66,15 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
         db.execSQL("delete from module where id = ?", new String[]{moduleId});
     }
 
-    public void update(Module module) {
-        final SQLiteDatabase db = getWritableDatabase();
+    /**
+     * 更新数据库中一个模块
+     *
+     * @param module  模块对象
+     * @param dexData 模块 dex(.jar) 字节数组
+     */
+    public void update(Module module, byte[] dexData) {
+        delete(module.id);
+        insert(module, dexData);
     }
 
     /**
@@ -119,6 +126,12 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
         return module;
     }
 
+    /**
+     * 从数据库查询模块 dex(.jar)
+     *
+     * @param moduleId 模块唯一 id
+     * @return 模块 dex(.jar)字节数组
+     */
     @Nullable
     public byte[] queryDexBytes(String moduleId) {
         final SQLiteDatabase db = getReadableDatabase();

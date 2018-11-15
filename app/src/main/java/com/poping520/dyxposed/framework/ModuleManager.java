@@ -14,12 +14,12 @@ import com.poping520.dyxposed.util.FileUtil;
 
 import java.io.IOException;
 
-
 /**
  * @author WangKZ
  * @version 1.0.0
  * create on 2018/11/12 16:03
  */
+@Deprecated
 public class ModuleManager {
 
     private static final String TAG = "ModuleManager";

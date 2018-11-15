@@ -5,6 +5,9 @@
     <string name="go_on">继续</string>
     <string name="exit_app">退出程序</string>
     <string name="warning">警告</string>
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="success">成功</string>
     <string name="understand">知道了</string>
 
     <string name="dialog_msg_xposed_module_not_active">您尚未启用 DyXposed 模块。如果您确定已经启用了本模块，请重启设备</string>
@@ -34,4 +37,12 @@
     <string name="process_err_entry_method_not_find">未找到 DyXposed 入口方法</string>
     <string name="process_err_entry_clz_constructor_not_access">DyXposed 入口类缺少无参构造方法</string>
     <string name="process_err_module_lack_element">该模块缺少必要元素：%1$s</string>
+
+    <string name="dialog_title_compile_failed">编译失败</string>
+    <string name="dialog_title_illegal_module">模块不合法</string>
+    <string name="dialog_msg_module_add_succ">模块 %1$s 添加成功</string>
+    <string name="dialog_title_upgrade_module">升级模块</string>
+    <string name="dialog_msg_upgrade_module">
+        <Date><![CDATA[你确定要升级 <b>%1$s</b> 吗？当前：%2$s 新版：%2$s]]></Date>
+    </string>
 </resources>
