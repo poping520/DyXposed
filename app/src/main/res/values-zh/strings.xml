@@ -43,6 +43,6 @@
     <string name="dialog_msg_module_add_succ">模块 %1$s 添加成功</string>
     <string name="dialog_title_upgrade_module">升级模块</string>
     <string name="dialog_msg_upgrade_module">
-        <Date><![CDATA[你确定要升级 <b>%1$s</b> 吗？当前：%2$s 新版：%2$s]]></Date>
+        <Date><![CDATA[你确定要升级<b>%1$s</b>吗？<p>当前：<b>%2$s</b><p>新版：<b>%3$s</b>]]></Date>
     </string>
 </resources>

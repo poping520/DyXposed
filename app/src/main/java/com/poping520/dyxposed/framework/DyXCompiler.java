@@ -61,14 +61,14 @@ public final class DyXCompiler {
         final StandardJavaFileManager fm =
                 javac.getStandardFileManager(collector, Locale.getDefault(), Charset.forName("UTF-8"));
 
-        fm.setBootClassJarPath(Env.Api.API_ANDROID.release());
+        fm.setBootClassJarPath(Env.Assets.API_ANDROID.release());
 
         try {
             List<File> api = new ArrayList<>();
             Collections.addAll(
                     api,
-                    new File(Env.Api.API_XPOSED.release()),
-                    new File(Env.Api.API_DYXPOSED.release())
+                    new File(Env.Assets.API_XPOSED.release()),
+                    new File(Env.Assets.API_DYXPOSED.release())
             );
             fm.setLocation(StandardLocation.CLASS_PATH, api);
             fm.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(classOutputDir));
@@ -94,7 +94,7 @@ public final class DyXCompiler {
             }
 
             // dx start
-            final String dexOutputPath = Env.getInstance().getDexOutputPath();
+            final String dexOutputPath = Env.getDexOutputPath();
             ret = dx(Env.getClassOutputDir(), dexOutputPath);
 
             if (!ret) {

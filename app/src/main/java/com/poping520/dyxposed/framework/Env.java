@@ -1,16 +1,20 @@
 package com.poping520.dyxposed.framework;
 
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Environment;
+import android.support.annotation.UiThread;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
+import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.system.AndroidSystem;
 import com.poping520.dyxposed.system.Shell;
 import com.poping520.dyxposed.util.CryptoUtil;
 import com.poping520.dyxposed.util.FileUtil;
+import com.poping520.dyxposed.util.ModuleUtil;
+import com.poping520.dyxposed.util.Objects;
+
+import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,33 +56,29 @@ public class Env {
 
     private static final String DYXPOSED_RELATIVE_DIR = "/DyXposed";
 
-    private static final String DEX_RELATIVE_DIR = "/module";
-
     // 工作&普通模式 目录
-    private static final String WORK_DIR =
+    private static final String WORK_SD_DIR =
             Environment.getExternalStorageDirectory().getAbsolutePath() + DYXPOSED_RELATIVE_DIR;
 
-    // root模式 目录
-    private static final String ROOT_DIR =
-            Environment.getDataDirectory().getAbsolutePath() + DYXPOSED_RELATIVE_DIR;
-
+    private static final String ROOT_RELATIVE_DIR = "shared";
+    private static final String MODULE_RELATIVE_DIR = "module";
+    private static final String DYXPOSED_LIB_RELATIVE_PATH = "lib/lib-dyxposed.jar";
     private static final String SPK_WORK_MODE = "WorkMode";
 
-    // class文件输出 目录
-    private static final String CLASS_OUTPUT_DIR = WORK_DIR + "/class";
-
-    public enum Api {
+    public enum Assets {
 
         API_XPOSED("api/api-xposed-82.jar", "87B9A136AE65B583E78B02F51C27D4A8"),
 
         API_ANDROID("api/api-android-28.jar", "F0A233AD65F0B1CC5CA461B404767658"),
 
-        API_DYXPOSED("api/api-dyxposed-2.jar", "DCD0E4699CD28C9451D4DEEDF610F009");
+        API_DYXPOSED("api/api-dyxposed-2.jar", "DCD0E4699CD28C9451D4DEEDF610F009"),
+
+        LIB_XPOSED("lib/lib-xposed.jar", "956145163B20889A7D895020F197E813");
 
         private String assetPath;
         private String md5;
 
-        Api(String assetPath, String md5) {
+        Assets(String assetPath, String md5) {
             this.assetPath = assetPath;
             this.md5 = md5;
         }
@@ -88,44 +88,8 @@ public class Env {
         }
     }
 
-    public enum Lib {
-
-        LIB_XPOSED("lib/lib-xposed.jar", "956145163B20889A7D895020F197E813"),
-
-        LIB_DYXPOSED("lib/lib-dyxposed.jar", null);
-
-        private String assetPath;
-        private String md5;
-
-        Lib(String assetPath, String md5) {
-            this.assetPath = assetPath;
-            this.md5 = md5;
-        }
-
-        String release() {
-            if (LIB_XPOSED.equals(this))
-                return releaseAsset(assetPath, md5);
-            else
-                return releaseDyXposedLib(assetPath);
-        }
-    }
-
-    private static String releaseDyXposedLib(String relativePath) {
-        final File file = new File(WORK_DIR, relativePath);
-        final String absPath = file.getAbsolutePath();
-        if (file.exists()) {
-            return absPath;
-        }
-
-        if (DyXCompiler.dx(Api.API_DYXPOSED.release(), absPath)) {
-            return absPath;
-        } else {
-            throw new DyXRuntimeException("");
-        }
-    }
-
     private static String releaseAsset(String assetPath, String md5) {
-        final File file = new File(WORK_DIR, assetPath);
+        final File file = new File(WORK_SD_DIR, assetPath);
         if (!FileUtil.verifyMD5(file, md5)) {
             try {
                 FileUtil.unZipAsset(DyXContext.getApplicationContext(), assetPath, file.getAbsolutePath(), true);
@@ -169,6 +133,13 @@ public class Env {
     }
 
     /**
+     * @return 是否为 ROOT 工作模式
+     */
+    public boolean isRootWorkMode() {
+        return getWorkMode() == MODE_ROOT;
+    }
+
+    /**
      * @return 是否已配置工作模式
      */
     public boolean isWorkModeNotConfigure() {
@@ -180,59 +151,168 @@ public class Env {
      * @return 获取 DyXposed 模块的类加载器
      */
     public ClassLoader getDyXModuleClassLoader() {
-        return new PathClassLoader(Lib.LIB_XPOSED.release(), getClass().getClassLoader());
+        return new PathClassLoader(Assets.LIB_XPOSED.release(), getClass().getClassLoader());
     }
 
     /**
-     * @return class 输出目录
+     * @return class(tmp) 输出目录
      */
     static String getClassOutputDir() {
-        FileUtil.mkDirIfNotExists(CLASS_OUTPUT_DIR, true);
-        return CLASS_OUTPUT_DIR;
+        final File dir = new File(DyXContext.getCacheDir(), "class");
+        FileUtil.mkDirIfNotExists(dir, true);
+        return dir.getAbsolutePath();
     }
 
     /**
-     * @return dex 输出路径
+     * @return dex(tmp) 输出路径
      */
-    public String getDexOutputPath() {
+    static String getDexOutputPath() {
         String name = String.valueOf(System.currentTimeMillis());
-
         final String md5 = CryptoUtil.getStringMD5(name);
         if (!TextUtils.isEmpty(md5)) {
             name = md5;
         }
-
-        String dexOutputDir;
-        // 检查 dex 输出文件夹
-        if (getWorkMode() == MODE_NORMAL) {
-            dexOutputDir = WORK_DIR + DEX_RELATIVE_DIR;
-            FileUtil.mkDirIfNotExists(dexOutputDir, true);
-
-        } else {
-            dexOutputDir = ROOT_DIR + DEX_RELATIVE_DIR;
-            checkRootModeDexOutputDir();
-        }
-
-        return String.format("%s/%s.jar", dexOutputDir, name);
+        return new File(DyXContext.getCacheDir(), name + ".jar")
+                .getAbsolutePath();
     }
 
-    private boolean checkRootModeDexOutputDir() {
-        final File file = new File(ROOT_DIR + DEX_RELATIVE_DIR);
+    /**
+     * NORMAL => /{$ExternalStorageDir}/Dyxposed
+     * ROOT   => /{$AppDataDir}/shared
+     */
+    private File getWorkDir() {
+        if (isRootWorkMode()) {
+            final File appDataDir = DyXContext.getCacheDir().getParentFile();
+            final File file = new File(appDataDir, ROOT_RELATIVE_DIR);
+            if (!file.exists()) {
+                Shell.exec(true, true,
+                        "chmod 701 " + appDataDir.getAbsolutePath());
+                FileUtil.mkDirIfNotExists(file, true);
+                makeGlobal(file.getAbsolutePath());
+            }
+            return file;
+        } else {
+            return new File(WORK_SD_DIR);
+        }
+    }
+
+    /**
+     * @return {@link #getWorkDir()} /module
+     */
+    private File getModuleDir() {
+        File file;
+        file = new File(getWorkDir(), MODULE_RELATIVE_DIR);
+        if (isRootWorkMode()) {
+            if (!file.exists()) {
+                FileUtil.mkDirIfNotExists(file, true);
+                makeGlobal(file.getAbsolutePath());
+            }
+        } else {
+            FileUtil.mkDirIfNotExists(file, true);
+        }
+        return file;
+    }
+
+    /**
+     * UI接口 开启模块
+     *
+     * @param module
+     * @param dexBytes
+     */
+    public void openModule(Module module, byte[] dexBytes) throws DyXRuntimeException, JSONException, IOException {
+        if (dexBytes == null || dexBytes.length == 0)
+            throw new DyXRuntimeException();
+
+        String name = CryptoUtil.getStringMD5(module.id);
+        if (TextUtils.isEmpty(name))
+            throw new DyXRuntimeException();
+
+        final String jsonStr = ModuleUtil.toJSONString(module);
+
+        final String format = getModuleDir() + File.separator + name + ".%s";
+        String jsonPath = String.format(format, "json");
+        String jarPath = String.format(format, "jar");
+
+        FileUtil.writeStringToFile(jsonPath, jsonStr, true);
+        FileUtil.writeBytes(jarPath, dexBytes, true);
+
+        // 设置权限
+        if (isRootWorkMode()) {
+            makeGlobal(jsonPath, jarPath);
+        }
+
+        releaseDyXLibIfNotExists();
+    }
+
+    private void releaseDyXLibIfNotExists() throws DyXRuntimeException {
+        final File file = new File(Env.getInstance().getWorkDir(), DYXPOSED_LIB_RELATIVE_PATH);
+        final File parentDir = file.getParentFile();
+        if (!parentDir.exists()) {
+            FileUtil.mkDirIfNotExists(parentDir, true);
+        }
+
+        final String absPath = file.getAbsolutePath();
         if (file.exists()) {
-            return true;
+            return;
         }
 
-        String[] cmds = {
-                "mkdir -p " + file.getAbsolutePath(),
-                "chmod -R 777 " + ROOT_DIR,
-                "chown -R 9997:9997 " + ROOT_DIR,
-                "\n"
-        };
+        if (DyXCompiler.dx(Assets.API_DYXPOSED.release(), absPath)) {
+            if (Env.getInstance().isRootWorkMode()) {
+                makeGlobal(parentDir.getAbsolutePath(), absPath);
+            }
+        } else {
+            throw new DyXRuntimeException("");
+        }
+    }
 
-        if (AndroidSystem.API_LEVEL >= Build.VERSION_CODES.N) {
-            cmds[3] = "chcon -R u:object_r:media_rw_data_file:s0 " + ROOT_DIR;
+    /**
+     * UI接口 关闭模块
+     *
+     * @param moduleId
+     * @throws DyXRuntimeException
+     */
+    public void closeModule(String moduleId) throws DyXRuntimeException {
+        String name = CryptoUtil.getStringMD5(moduleId);
+        if (TextUtils.isEmpty(name))
+            throw new DyXRuntimeException();
+
+        final File[] files = getModuleDir().listFiles(
+                pathname -> pathname.getName().startsWith(name));
+
+        if (Objects.isNonEmptyArray(files)) {
+            for (File file : files) {
+                FileUtil.remove(file);
+            }
+        }
+    }
+
+    /**
+     * 将文件/夹 改为任何 uid 可读可执行
+     *
+     * @param paths
+     * @return
+     */
+    private static Shell.Result makeGlobal(String... paths) {
+
+        StringBuilder chmod = new StringBuilder();
+        StringBuilder chown = new StringBuilder();
+        StringBuilder chcon = new StringBuilder();
+
+        chmod.append("chmod 777");
+        chown.append("chown 9997:9997");
+        chcon.append("chcon u:object_r:media_rw_data_file:s0");
+        for (String path : paths) {
+            chmod.append(" ").append(path);
+            chown.append(" ").append(path);
+            chcon.append(" ").append(path);
         }
 
-        return Shell.exec(true, true, cmds).success;
+        return Shell.exec(true, true,
+                chmod.toString(),
+                chown.toString(),
+                AndroidSystem.isNewApi_N()
+                        ? chcon.toString()
+                        : "\n"
+        );
     }
 }

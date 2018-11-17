@@ -115,7 +115,7 @@ public final class AnnotationProcessor {
         // 获取代理/入口类成员变量的值 赋给 Module 对象
 
         List<String> nulls = processMustNonNull(moduleClzObj);
-        if (nulls.size() == 0) {
+        if (nulls.isEmpty()) {
             ret.succ = true;
             ret.obj = moduleClzObj;
         } else {
@@ -179,7 +179,7 @@ public final class AnnotationProcessor {
                         entries.nextElement(),
                         Env.getInstance().getDyXModuleClassLoader()
                 );
-                if (clz.isAnnotationPresent(DyXEntryClass.class)) {
+                if (clz != null && clz.isAnnotationPresent(DyXEntryClass.class)) {
                     entryClz = clz;
                     break;
                 }

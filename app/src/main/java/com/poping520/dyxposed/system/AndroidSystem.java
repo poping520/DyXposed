@@ -5,12 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.util.Log;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.framework.DyXContext;
 
 import java.io.File;
+import java.util.Locale;
 
 /**
  * @author WangKZ
@@ -109,5 +109,16 @@ public class AndroidSystem {
             // TODO
             throw new DyXRuntimeException();
         }
+    }
+
+    /**
+     * @return 当前系统语言
+     */
+    public static String getCurrentLanguage() {
+        return Locale.getDefault().getLanguage();
+    }
+
+    public static boolean isNewApi_N() {
+        return API_LEVEL >= Build.VERSION_CODES.N;
     }
 }

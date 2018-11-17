@@ -111,9 +111,6 @@ public class ModulePickerActivity extends AppCompatActivity {
 
             switch (mSelectedFile.type) {
                 case FOLDER:
-//                    final ModuleSource src = new ModuleSource();
-//                    src.path = mSelectedFile.file.getAbsolutePath();
-//                    new ModuleManager().parseModule(src);
                     handleModuleSrc(mSelectedFile.file.getAbsolutePath(), false);
                     break;
 
@@ -124,10 +121,6 @@ public class ModulePickerActivity extends AppCompatActivity {
                 case JAVA_SOURCE:
                     break;
             }
-
-            final Intent intent = new Intent();
-            intent.putExtra(EXTRA_NAME_SELECTED_FILE, mSelectedFile);
-            setResult(RESULT_OK, intent);
         });
     }
 
@@ -174,7 +167,6 @@ public class ModulePickerActivity extends AppCompatActivity {
     private void onInsertModule(Module module, String dexPath) {
         try {
             mDBHelper.insert(module, FileUtil.readBytes(dexPath, true));
-
             final MDialog dialog = new MDialog.Builder(this)
                     .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
                     .setHeaderPic(R.drawable.ic_success_white_24dp)
@@ -195,6 +187,7 @@ public class ModulePickerActivity extends AppCompatActivity {
         if (force) {
             try {
                 mDBHelper.update(newModule, FileUtil.readBytes(newDexPath, true));
+                FileUtil.remove(newDexPath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -215,14 +208,15 @@ public class ModulePickerActivity extends AppCompatActivity {
                             mDBHelper.update(newModule, FileUtil.readBytes(newDexPath, true));
                         } catch (IOException e) {
                             e.printStackTrace();
+                        } finally {
+                            FileUtil.remove(newDexPath);
                         }
                     })
                     .setNegativeButton(R.string.cancel, null)
                     .show();
         }
-
-        FileUtil.remove(newDexPath);
     }
+
 
     private void makeDialog(@StringRes int title, String msg) {
         new MDialog.Builder(this)

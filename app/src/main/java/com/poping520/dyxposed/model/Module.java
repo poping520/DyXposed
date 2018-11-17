@@ -37,7 +37,7 @@ public class Module {
     public Map<String, String> name;
 
     /**
-     * 模块简述
+     * 模块描述
      * 转成 JSONObject 字符串保存
      */
     @Nullable

@@ -9,6 +9,8 @@ import android.support.annotation.StringRes;
 import com.poping520.dyxposed.BuildConfig;
 import com.poping520.dyxposed.exception.DyXRuntimeException;
 
+import java.io.File;
+
 /**
  * @author WangKZ
  * @version 1.0.0
@@ -54,6 +56,10 @@ public class DyXContext {
             throw new DyXRuntimeException("...");
 
         return context;
+    }
+
+    public static File getCacheDir() {
+        return getApplicationContext().getCacheDir();
     }
 
     public static String getString(@StringRes int resId) {

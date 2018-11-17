@@ -8,14 +8,14 @@
     <string name="ok">OK</string>
     <string name="cancel">cancel</string>
     <string name="success">success</string>
-    <string name="understand">知道了</string>
+    <string name="understand">OK</string>
 
     <string name="dialog_msg_xposed_module_not_active"></string>
-    <string name="enable_module">启用模块</string>
+    <string name="enable_module">enable module</string>
     <string name="dialog_msg_xposed_not_install"></string>
 
     <string name="retry_request_permission">retry</string>
-    <string name="permission_dialog_title"></string>
+    <string name="permission_dialog_title">remind</string>
     <string name="dialog_msg_request_permission"></string>
     <string name="dialog_msg_refuse_permission"></string>
     <string name="toast_permission_granted"></string>
@@ -40,9 +40,9 @@
 
     <string name="dialog_title_compile_failed">compile failed</string>
     <string name="dialog_title_illegal_module">illegal module</string>
-    <string name="dialog_msg_module_add_succ">模块 %1$s 添加成功</string>
+    <string name="dialog_msg_module_add_succ">module %1$s added successfully</string>
     <string name="dialog_title_upgrade_module">upgrade module</string>
     <string name="dialog_msg_upgrade_module">
-        <Date><![CDATA[你确定要升级 <b>%1$s</b> 吗？当前：%2$s 新版：%2$s]]></Date>
+        <Date><![CDATA[are you sure upgrade<b>%1$s</b>?<p>now version：<b>%2$s</b><p>new version：<b>%3$s</b>]]></Date>
     </string>
 </resources>

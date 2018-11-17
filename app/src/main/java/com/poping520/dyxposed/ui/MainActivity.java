@@ -6,7 +6,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
@@ -14,18 +13,18 @@ import android.widget.Button;
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleAdapter;
 import com.poping520.dyxposed.framework.BaseMainActivity;
-import com.poping520.dyxposed.framework.DyXCompiler;
 import com.poping520.dyxposed.framework.Env;
+import com.poping520.dyxposed.framework.ModuleDBHelper;
 import com.poping520.dyxposed.model.Module;
-import com.poping520.dyxposed.model.FileItem;
 import com.poping520.dyxposed.system.AndroidSystem;
 import com.poping520.open.mdialog.MDialog;
 import com.poping520.open.mdialog.MDialogAction;
 
-import java.util.ArrayList;
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.List;
 
-import static com.poping520.dyxposed.ui.ModulePickerActivity.EXTRA_NAME_SELECTED_FILE;
 
 public class MainActivity extends BaseMainActivity {
 
@@ -34,12 +33,18 @@ public class MainActivity extends BaseMainActivity {
     // 选择模块请求码
     private final static int REQ_CODE_SELECT_MODULE = 0x0;
 
+    private ModuleDBHelper mDBHelper;
+    private Env mEnv;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mDBHelper = ModuleDBHelper.getInstance();
+        mEnv = Env.getInstance();
 
         initFAB();
         initRecyclerViews();
@@ -55,7 +60,6 @@ public class MainActivity extends BaseMainActivity {
         }
 
         fab.setOnClickListener(v -> {
-
             // 选择工作模式
             if (env.isWorkModeNotConfigure()) {
                 final MDialog mDialog = new MDialog.Builder(this)
@@ -99,24 +103,6 @@ public class MainActivity extends BaseMainActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        // 处理模块 compile => class => dex
-        if (requestCode == REQ_CODE_SELECT_MODULE && resultCode == RESULT_OK) {
-            FileItem item = (FileItem) data.getSerializableExtra(EXTRA_NAME_SELECTED_FILE);
-
-            switch (item.type) {
-                case ZIP:
-
-                    break;
-
-                case FOLDER:
-
-                    break;
-
-                case JAVA_SOURCE:
-                    break;
-            }
-        }
     }
 
     private void initRecyclerViews() {
@@ -126,16 +112,26 @@ public class MainActivity extends BaseMainActivity {
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         rvMain.setLayoutManager(llm);
 
-        List<Module> list = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            final Module module = new Module();
-//            module.name = "Test";
-//            module.version = "1.0.0";
-//            module.description = "description";
-            list.add(module);
-        }
-
+        final List<Module> list = mDBHelper.queryAll();
         final ModuleAdapter adapter = new ModuleAdapter(this, list);
+        adapter.setMultiListener(new ModuleAdapter.MultiListener() {
+            @Override
+            public void onModuleSwitchChanged(Module module, boolean isCheck) {
+                String moduleId = module.id;
+                mDBHelper.update(moduleId, isCheck);
+                if (isCheck) {
+                    try {
+                        mEnv.openModule(module, mDBHelper.queryDexBytes(moduleId));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    mEnv.closeModule(moduleId);
+                }
+            }
+        });
 
         rvMain.setAdapter(adapter);
     }

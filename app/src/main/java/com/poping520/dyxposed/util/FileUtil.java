@@ -6,10 +6,12 @@ import com.poping520.dyxposed.system.Shell;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -19,6 +21,74 @@ import java.io.InputStream;
  * create on 2018/11/9 16:37
  */
 public final class FileUtil {
+
+    public static boolean writeStringToFile(String dstPath, String str, boolean force)
+            throws IOException {
+        return writeStringToFile(new File(dstPath), str, force);
+    }
+
+    /**
+     * 字符串对象保存到文件
+     *
+     * @param dst
+     * @param str
+     * @param force
+     * @return
+     */
+    public static boolean writeStringToFile(File dst, String str, boolean force) throws IOException {
+        if (dst.exists()) {
+            if (force) {
+                if (remove(dst))
+                    return writeStringToFile(dst, str, true);
+                else
+                    throw new IOException("已存在的同名文件/夹无法删除");
+            } else return false;
+        } else {
+            final File parentDir = dst.getParentFile();
+            if (!parentDir.exists() && !mkDirIfNotExists(parentDir, force))
+                throw new IOException("无法创建父级目录");
+
+            BufferedWriter bw = new BufferedWriter(new FileWriter(dst));
+            bw.write(str);
+            bw.flush();
+            bw.close();
+            return true;
+        }
+    }
+
+    public static boolean writeBytes(String dstFile, byte[] bytes, boolean force)
+            throws IOException {
+        return writeBytes(new File(dstFile), bytes, force);
+    }
+
+    /**
+     * 字节数组写到文件
+     *
+     * @param dst   输出文件
+     * @param bytes 字节数组
+     * @param force 是否覆盖写入
+     * @return 是否成功
+     */
+    public static boolean writeBytes(File dst, byte[] bytes, boolean force) throws IOException {
+        if (dst.exists()) {
+            if (force) {
+                if (remove(dst))
+                    return writeBytes(dst, bytes, true);
+                else
+                    throw new IOException("已存在的同名文件/夹无法删除");
+            } else return false;
+        } else {
+            final File parentDir = dst.getParentFile();
+            if (!parentDir.exists() && !mkDirIfNotExists(parentDir, force))
+                throw new IOException("无法创建父级目录");
+
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(dst));
+            bos.write(bytes);
+            bos.flush();
+            bos.close();
+            return true;
+        }
+    }
 
     /**
      * 文件转字节数组
@@ -40,7 +110,7 @@ public final class FileUtil {
 
         if (delete) {
             if (!file.delete()) {
-                Shell.exec(false, false, "rm -rf " + path);
+                remove(file);
             }
         }
         return baos.toByteArray();
@@ -63,8 +133,12 @@ public final class FileUtil {
     }
 
 
-    public static boolean remove(File dir) {
-        return remove(dir.getAbsolutePath());
+    public static boolean remove(File file) {
+        return remove(file.getAbsolutePath());
+    }
+
+    public static boolean mkDirIfNotExists(File dir, boolean force) {
+        return mkDirIfNotExists(dir.getAbsolutePath(), force);
     }
 
     /**
@@ -80,23 +154,18 @@ public final class FileUtil {
         if (!dir.isAbsolute())
             throw new IllegalArgumentException("not absolute path");
 
-        if (dir.exists()) {
+        if (dir.exists())
             if (dir.isDirectory())
                 return true;
-            else {
-                if (remove(path))
-                    return mkDirIfNotExists(path, force);
-                else
-                    return false;
-            }
-        } else {
-            if (dir.mkdirs()) {
-                return true;
-            } else {
-                final String cmd = String.format("mkdir -p %s", path);
-                return Shell.exec(false, false, cmd).success;
-            }
-        }
+            else if (force && remove(path))
+                return mkDirIfNotExists(path, true);
+            else
+                return false;
+        else if (dir.mkdirs())
+            return true;
+        else
+            return Shell.exec(false, false,
+                    String.format("mkdir -p %s", path)).success;
     }
 
     /**
@@ -108,18 +177,20 @@ public final class FileUtil {
      * @param force   输出文件已存在，是否覆盖
      * @throws IOException
      */
-    public static void unZipAsset(Context context, String asset, String dst, boolean force) throws IOException {
+    public static void unZipAsset(Context context, String asset, String dst, boolean force) throws
+            IOException {
         final File dstFile = new File(dst);
 
-        if (!mkDirIfNotExists(dstFile.getAbsolutePath(), force)) {
+        if (!mkDirIfNotExists(dstFile.getParent(), force)) {
             throw new IOException("创建文件夹失败");
         }
 
         if (dstFile.exists()) {
-
             if (force) {
-                if (!dstFile.delete())
-                    throw new IOException("");
+                if (remove(dstFile))
+                    unZipAsset(context, asset, dst, true);
+                else
+                    throw new IOException("已存在的同名文件/夹无法删除");
             } else {
                 return;
             }

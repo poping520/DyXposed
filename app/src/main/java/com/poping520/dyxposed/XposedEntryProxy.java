@@ -1,5 +1,7 @@
 package com.poping520.dyxposed;
 
+import android.util.Log;
+
 import com.poping520.dyxposed.api.DyXEntryClass;
 import com.poping520.dyxposed.api.DyXEntryMethod;
 import com.poping520.dyxposed.api.DyXModuleAuthor;
@@ -13,6 +15,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import static de.robv.android.xposed.XposedHelpers.*;
+
+import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 /**
@@ -36,7 +41,7 @@ public class XposedEntryProxy {
     Map<String, String> desc = new HashMap<>();
 
     @DyXModuleVer
-    String version = "1.0.0";
+    String version = "1.0.1";
 
     @DyXTargetApp
     String[] target_arr = {"com.poping520.dyxposed", "com.android.settings"};
@@ -51,6 +56,14 @@ public class XposedEntryProxy {
 
     @DyXEntryMethod
     void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+        final Class<?> clz = findClass("com.poping520.dyxposed.framework.DyXApplication", lpparam.classLoader);
+        findAndHookMethod(clz, "onCreate", new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                super.beforeHookedMethod(param);
 
+                Log.e("DyXposed", "on Hook " + clz.getName() + " onCreate()");
+            }
+        });
     }
 }
