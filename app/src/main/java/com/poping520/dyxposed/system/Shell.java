@@ -17,10 +17,6 @@ public class Shell {
     static final String EXIT = "exit\n";
     static final String LINE_END = "\n";
 
-    public static boolean execSU() {
-        return exec(true, false, "").success;
-    }
-
     public static Result exec(boolean isNeedRoot, boolean isNeedResultMsg, String... commands) {
         int result = -1;
         if (commands == null || commands.length == 0) {

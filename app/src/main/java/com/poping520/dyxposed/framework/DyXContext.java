@@ -5,9 +5,11 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.StringRes;
+import android.support.design.widget.Snackbar;
 
 import com.poping520.dyxposed.BuildConfig;
 import com.poping520.dyxposed.exception.DyXRuntimeException;
+import com.poping520.dyxposed.util.Objects;
 
 import java.io.File;
 
@@ -62,19 +64,46 @@ public class DyXContext {
         return getApplicationContext().getCacheDir();
     }
 
-    public static String getString(@StringRes int resId) {
+    public static String getStringFromRes(@StringRes int resId) {
         return getApplicationContext().getString(resId);
     }
 
-    public static String getString(@StringRes int resId, Object... formatArgs) {
+    public static String getStringFromRes(@StringRes int resId, Object... formatArgs) {
         return getApplicationContext().getString(resId, formatArgs);
     }
 
-    public static SharedPreferences getAppSharedPrefs() {
+    private static SharedPreferences getAppSharedPrefs() {
         return getApplicationContext().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE);
     }
 
-    public static boolean isLaunchFirstTime() {
+    public static <T> void save(String key, T value) {
+        final SharedPreferences.Editor edit = getAppSharedPrefs().edit();
+        if (value instanceof String)
+            edit.putString(key, (String) value);
+        else if (value instanceof Integer)
+            edit.putInt(key, (Integer) value);
+        else if (value instanceof Boolean)
+            edit.putBoolean(key, (Boolean) value);
+        else
+            throw new IllegalArgumentException("not implement");
+        edit.apply();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T get(String key, T defaultValue) {
+        Objects.requireNonNull(defaultValue, "must NonNull");
+        final SharedPreferences sp = getAppSharedPrefs();
+        if (defaultValue instanceof String)
+            return (T) sp.getString(key, (String) defaultValue);
+        else if (defaultValue instanceof Integer)
+            return (T) Integer.valueOf(sp.getInt(key, (Integer) defaultValue));
+        else if (defaultValue instanceof Boolean)
+            return (T) Boolean.valueOf(sp.getBoolean(key, (Boolean) defaultValue));
+        else
+            throw new IllegalArgumentException("not implement");
+    }
+
+    static boolean isLaunchFirstTime() {
         return getAppSharedPrefs().getInt(SPK_LAUNCH_TIMES, 0) == 0;
     }
 }

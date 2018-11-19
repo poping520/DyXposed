@@ -20,10 +20,17 @@
     <string name="dialog_msg_refuse_permission"></string>
     <string name="toast_permission_granted"></string>
     <string name="dialog_title_select_work_mode"></string>
+    <string name="hint_add_module">Please Import Module</string>
+    <string name="hint_config_work_mode">Please Configure Work Mode</string>
     <string name="work_mode_root">ROOT MODE</string>
     <string name="work_mode_normal">NORMAL MODE</string>
+    <string name="device_root_already">ROOT ALREADY</string>
+    <string name="device_not_root">you device has no root</string>
     <string name="dialog_msg_work_mode_root">
 
+    </string>
+    <string name="dialog_msg_work_mode_normal">
+        <Date><![CDATA[您的设备可能没有 ROOT 权限，本程序将以<b>普通模式</b>工作。<p>如果您确定您的设备拥有 ROOT 权限，请点击 <b><i>设备已ROOT</i></b> 执行 su 命令。]]></Date>
     </string>
 
     <string name="file_picker_label">导入模块</string>

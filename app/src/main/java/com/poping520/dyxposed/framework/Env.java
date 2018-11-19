@@ -1,8 +1,6 @@
 package com.poping520.dyxposed.framework;
 
-import android.content.SharedPreferences;
 import android.os.Environment;
-import android.support.annotation.UiThread;
 import android.text.TextUtils;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
@@ -64,6 +62,7 @@ public class Env {
     private static final String MODULE_RELATIVE_DIR = "module";
     private static final String DYXPOSED_LIB_RELATIVE_PATH = "lib/lib-dyxposed.jar";
     private static final String SPK_WORK_MODE = "WorkMode";
+    private static final String SPK_DEVICE_ROOT = "DeviceRoot";
 
     public enum Assets {
 
@@ -84,25 +83,18 @@ public class Env {
         }
 
         String release() {
-            return releaseAsset(assetPath, md5);
-        }
-    }
-
-    private static String releaseAsset(String assetPath, String md5) {
-        final File file = new File(WORK_SD_DIR, assetPath);
-        if (!FileUtil.verifyMD5(file, md5)) {
-            try {
-                FileUtil.unZipAsset(DyXContext.getApplicationContext(), assetPath, file.getAbsolutePath(), true);
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new DyXRuntimeException("");
+            final File file = new File(WORK_SD_DIR, assetPath);
+            if (!FileUtil.verifyMD5(file, md5)) {
+                try {
+                    FileUtil.unZipAsset(DyXContext.getApplicationContext(), assetPath, file.getAbsolutePath(), true);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new DyXRuntimeException("");
+                }
             }
+            return file.getAbsolutePath();
         }
-        return file.getAbsolutePath();
     }
-
-
-    private SharedPreferences mAppSp;
 
     private static class InnerHolder {
         private static final Env INSTANCE = new Env();
@@ -113,7 +105,34 @@ public class Env {
     }
 
     private Env() {
-        mAppSp = DyXContext.getAppSharedPrefs();
+    }
+
+    private EnvStateListener mListener;
+
+    void setEnvStateListener(EnvStateListener listener) {
+        mListener = listener;
+
+        if (isWorkModeNotConfigure())
+            return;
+
+        final boolean now = AndroidSystem.isRootedDevice();
+        final boolean last = DyXContext.get(ROOT_RELATIVE_DIR, false);
+
+        if (now != last)
+            listener.onRootStateChanged(now);
+    }
+
+    interface EnvStateListener {
+
+        /**
+         * 工作模式已配置
+         */
+        void onWorkModeConfigured(int mode);
+
+        /**
+         * 设备 Root 状态改变
+         */
+        void onRootStateChanged(boolean isRooted);
     }
 
     /**
@@ -122,14 +141,15 @@ public class Env {
      * @param mode {@link #MODE_ROOT} or {@link #MODE_NORMAL}
      */
     public void setWorkMode(int mode) {
-        mAppSp.edit().putInt(SPK_WORK_MODE, mode).apply();
+        DyXContext.save(SPK_WORK_MODE, mode);
+        mListener.onWorkModeConfigured(mode);
     }
 
     /**
      * @return 工作模式 {@link #MODE_ROOT} or {@link #MODE_NORMAL}
      */
     public int getWorkMode() {
-        return mAppSp.getInt(SPK_WORK_MODE, MODE_NORMAL);
+        return DyXContext.get(SPK_WORK_MODE, MODE_NORMAL);
     }
 
     /**
@@ -143,7 +163,7 @@ public class Env {
      * @return 是否已配置工作模式
      */
     public boolean isWorkModeNotConfigure() {
-        return mAppSp.getInt(SPK_WORK_MODE, MODE_NOT_CONFIGURE) == MODE_NOT_CONFIGURE
+        return DyXContext.get(SPK_WORK_MODE, MODE_NOT_CONFIGURE) == MODE_NOT_CONFIGURE
                 || DyXContext.isLaunchFirstTime();
     }
 

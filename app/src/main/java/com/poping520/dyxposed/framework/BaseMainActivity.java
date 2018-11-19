@@ -18,7 +18,6 @@ import com.poping520.dyxposed.BuildConfig;
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.system.AndroidSystem;
 import com.poping520.open.mdialog.MDialog;
-import com.poping520.open.mdialog.MDialogAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +27,7 @@ import java.util.List;
  * @version 1.0.0
  * create on 2018/11/8 17:20
  */
-public abstract class BaseMainActivity extends AppCompatActivity {
+public abstract class BaseMainActivity extends AppCompatActivity implements Env.EnvStateListener {
 
     private static final String[] MUST_PERMISSIONS = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -152,6 +151,8 @@ public abstract class BaseMainActivity extends AppCompatActivity {
         if (!isGranted) {
             return;
         }
+
+        Env.getInstance().setEnvStateListener(this);
     }
 
     protected void killSelf() {

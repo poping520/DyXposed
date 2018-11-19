@@ -1,7 +1,6 @@
 package com.poping520.dyxposed.ui;
 
 import android.animation.ObjectAnimator;
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -30,6 +29,7 @@ import com.poping520.dyxposed.model.Result;
 import com.poping520.dyxposed.util.FileUtil;
 import com.poping520.dyxposed.util.ModuleUtil;
 import com.poping520.open.mdialog.MDialog;
+import com.poping520.open.mdialog.MDialogAction;
 
 import java.io.IOException;
 
@@ -103,6 +103,11 @@ public class ModulePickerActivity extends AppCompatActivity {
         initRecyclerView();
     }
 
+    private void onResult() {
+        setResult(0);
+        finish();
+    }
+
     private void initFAB() {
         mFab.setOnClickListener(v -> {
             if (mSelectedFile == null) {
@@ -172,7 +177,9 @@ public class ModulePickerActivity extends AppCompatActivity {
                     .setHeaderPic(R.drawable.ic_success_white_24dp)
                     .setTitle(R.string.success)
                     .setMessage(R.string.dialog_msg_module_add_succ, ModuleUtil.getShowName(module))
-                    .setPositiveButton(R.string.ok, null)
+                    .setPositiveButton(R.string.ok, (mDialog, mDialogAction) -> {
+                        onResult();
+                    })
                     .create();
             dialog.getNegativeButton().setVisibility(View.INVISIBLE);
             dialog.show();
@@ -187,13 +194,15 @@ public class ModulePickerActivity extends AppCompatActivity {
         if (force) {
             try {
                 mDBHelper.update(newModule, FileUtil.readBytes(newDexPath, true));
-                FileUtil.remove(newDexPath);
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                FileUtil.remove(newDexPath);
+                onResult();
             }
         } else {
             String msg = String.format(
-                    DyXContext.getString(R.string.dialog_msg_upgrade_module),
+                    DyXContext.getStringFromRes(R.string.dialog_msg_upgrade_module),
                     ModuleUtil.getShowName(newModule),
                     oldVer,
                     newModule.version
@@ -210,6 +219,7 @@ public class ModulePickerActivity extends AppCompatActivity {
                             e.printStackTrace();
                         } finally {
                             FileUtil.remove(newDexPath);
+                            onResult();
                         }
                     })
                     .setNegativeButton(R.string.cancel, null)

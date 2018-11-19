@@ -48,7 +48,7 @@ public final class AnnotationProcessor {
         // 代理/入口类确认
         Class<?> entryClz = findEntryClass(moduleDexPath);
         if (entryClz == null) {
-            ret.errMsg = DyXContext.getString(R.string.process_err_entry_clz_not_find);
+            ret.errMsg = DyXContext.getStringFromRes(R.string.process_err_entry_clz_not_find);
             return ret;
         }
         try {
@@ -64,7 +64,7 @@ public final class AnnotationProcessor {
         // 代理/入口方法确认
         final Method entryMethod = findEntryMethod(entryClz);
         if (entryMethod == null) {
-            ret.errMsg = DyXContext.getString(R.string.process_err_entry_method_not_find);
+            ret.errMsg = DyXContext.getStringFromRes(R.string.process_err_entry_method_not_find);
             return ret;
         }
         try {
@@ -88,7 +88,7 @@ public final class AnnotationProcessor {
         }
 
         if (entryClzObj == null) {
-            ret.errMsg = DyXContext.getString(R.string.process_err_entry_method_not_find);
+            ret.errMsg = DyXContext.getStringFromRes(R.string.process_err_entry_method_not_find);
             return ret;
         }
         // 创建代理/入口类 对象
@@ -123,7 +123,7 @@ public final class AnnotationProcessor {
             for (String str : nulls) {
                 sb.append(str).append(" ");
             }
-            ret.errMsg = DyXContext.getString(R.string.process_err_module_lack_element, sb.toString());
+            ret.errMsg = DyXContext.getStringFromRes(R.string.process_err_module_lack_element, sb.toString());
         }
         return ret;
     }
@@ -157,7 +157,7 @@ public final class AnnotationProcessor {
                     String showName = stringResId
                             == 0
                             ? field.getName()
-                            : DyXContext.getString(stringResId);
+                            : DyXContext.getStringFromRes(stringResId);
                     list.add(showName);
                 }
             }
@@ -174,10 +174,11 @@ public final class AnnotationProcessor {
             final DexFile dexFile = new DexFile(dexPath);
             final Enumeration<String> entries = dexFile.entries();
 
+            final ClassLoader moduleClassLoader = Env.getInstance().getDyXModuleClassLoader();
             while (entries.hasMoreElements()) {
                 final Class clz = dexFile.loadClass(
                         entries.nextElement(),
-                        Env.getInstance().getDyXModuleClassLoader()
+                        moduleClassLoader
                 );
                 if (clz != null && clz.isAnnotationPresent(DyXEntryClass.class)) {
                     entryClz = clz;

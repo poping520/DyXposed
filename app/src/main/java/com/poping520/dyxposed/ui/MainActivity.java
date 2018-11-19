@@ -2,13 +2,20 @@ package com.poping520.dyxposed.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleAdapter;
@@ -17,6 +24,8 @@ import com.poping520.dyxposed.framework.Env;
 import com.poping520.dyxposed.framework.ModuleDBHelper;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.system.AndroidSystem;
+import com.poping520.dyxposed.system.Shell;
+import com.poping520.dyxposed.util.Objects;
 import com.poping520.open.mdialog.MDialog;
 import com.poping520.open.mdialog.MDialogAction;
 
@@ -33,8 +42,31 @@ public class MainActivity extends BaseMainActivity {
     // 选择模块请求码
     private final static int REQ_CODE_SELECT_MODULE = 0x0;
 
+    private final static int MSG_EXEC_SU = 0x1;
+
+    private TextView mTvHint;
     private ModuleDBHelper mDBHelper;
     private Env mEnv;
+
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+
+                case MSG_EXEC_SU:
+                    if ((boolean) msg.obj) {
+
+                        mEnv.setWorkMode(Env.MODE_ROOT);
+                    } else {
+                        snackBar(R.string.device_not_root);
+                        mEnv.setWorkMode(Env.MODE_NORMAL);
+                    }
+
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +78,7 @@ public class MainActivity extends BaseMainActivity {
         mDBHelper = ModuleDBHelper.getInstance();
         mEnv = Env.getInstance();
 
+        mTvHint = findViewById(R.id.tv_hint);
         initFAB();
         initRecyclerViews();
     }
@@ -87,8 +120,22 @@ public class MainActivity extends BaseMainActivity {
                     });
 
                 } else { // 设备未ROOT
-                    mDialog.getPositiveButton().setText(R.string.go_on);
-                    mDialog.getNegativeButton().setText("设备已ROOT");
+                    mDialog.setHTMLMessage(R.string.dialog_msg_work_mode_normal);
+
+                    posBtn.setText(R.string.understand);
+                    negBtn.setText(R.string.device_root_already);
+
+                    mDialog.setOnClickListener((dialog, mDialogAction) -> {
+                        switch (mDialogAction) {
+                            case POSITIVE:
+                                env.setWorkMode(Env.MODE_NORMAL);
+                                break;
+
+                            case NEGATIVE: //执行 su 命令
+                                tryExecRootCmd();
+                                break;
+                        }
+                    });
                 }
 
                 mDialog.show();
@@ -100,9 +147,14 @@ public class MainActivity extends BaseMainActivity {
         });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    // 执行su命令
+    private void tryExecRootCmd() {
+        new Thread(() -> {
+            final Shell.Result ret = Shell.exec(true, true, "\n");
+            final Message msg = mHandler.obtainMessage(MSG_EXEC_SU,
+                    ret.resultCode == 0 || ret.resultCode == 1 || ret.toString().contains("denied"));
+            mHandler.sendMessage(msg);
+        }).start();
     }
 
     private void initRecyclerViews() {
@@ -113,6 +165,16 @@ public class MainActivity extends BaseMainActivity {
         rvMain.setLayoutManager(llm);
 
         final List<Module> list = mDBHelper.queryAll();
+
+        if (mEnv.isWorkModeNotConfigure()) {
+            mTvHint.setVisibility(View.VISIBLE);
+            mTvHint.setText(R.string.hint_config_work_mode);
+            return;
+        } else if (Objects.isEmptyList(list)) {
+            mTvHint.setVisibility(View.VISIBLE);
+            mTvHint.setText(R.string.hint_add_module);
+            return;
+        }
         final ModuleAdapter adapter = new ModuleAdapter(this, list);
         adapter.setMultiListener(new ModuleAdapter.MultiListener() {
             @Override
@@ -136,6 +198,15 @@ public class MainActivity extends BaseMainActivity {
         rvMain.setAdapter(adapter);
     }
 
+    private void snackBar(@StringRes int resId) {
+        Snackbar.make(findViewById(android.R.id.content), resId, Snackbar.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -149,5 +220,21 @@ public class MainActivity extends BaseMainActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onWorkModeConfigured(int mode) {
+        if (mTvHint == null || mDBHelper == null)
+            return;
+        if (mTvHint.getVisibility() == View.VISIBLE) {
+            if (Objects.isEmptyList(mDBHelper.queryAll())) {
+                mTvHint.setText(R.string.hint_add_module);
+            }
+        }
+    }
+
+    @Override
+    public void onRootStateChanged(boolean isRooted) {
+
     }
 }
