@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="module_long_click_select_list">
+        <item>@string/delete_module</item>
+    </string-array>
+</resources>

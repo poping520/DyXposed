@@ -2,10 +2,12 @@ package com.poping520.dyxposed.adapter;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.ListPopupWindow;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -29,10 +31,16 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
     private Context mContext;
     private List<Module> mList;
     private MultiListener mListener;
+    private ArrayAdapter<String> mPopAdapter;
 
     public ModuleAdapter(Context context, List<Module> list) {
         mContext = context;
         mList = list;
+        mPopAdapter = new ArrayAdapter<>(
+                mContext,
+                android.R.layout.simple_list_item_1,
+                mContext.getResources().getStringArray(R.array.module_long_click_select_list)
+        );
     }
 
     @NonNull
@@ -56,6 +64,18 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
         holder.mSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             mListener.onModuleSwitchChanged(module, isChecked);
         });
+
+        holder.itemView.setLongClickable(true);
+        holder.itemView.setOnLongClickListener(v -> {
+            final ListPopupWindow pop = new ListPopupWindow(mContext);
+            pop.setAdapter(mPopAdapter);
+            pop.setAnchorView(holder.mName);
+            pop.setModal(true);
+            pop.setHeight(ListPopupWindow.WRAP_CONTENT);
+            pop.setWidth(ListPopupWindow.WRAP_CONTENT);
+            pop.show();
+            return true;
+        });
     }
 
     @Override
@@ -74,7 +94,10 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
          */
         void onModuleSwitchChanged(Module module, boolean isCheck);
 
-
+        /**
+         * 删除模块回调
+         */
+        void onDeleteModuleClick(Module module);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

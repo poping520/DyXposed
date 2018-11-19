@@ -193,6 +193,11 @@ public class MainActivity extends BaseMainActivity {
                     mEnv.closeModule(moduleId);
                 }
             }
+
+            @Override
+            public void onDeleteModuleClick(Module module) {
+
+            }
         });
 
         rvMain.setAdapter(adapter);

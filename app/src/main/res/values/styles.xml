@@ -17,22 +17,23 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-
     <style name="DyXposedCardView" parent="CardView">
+        <item name="cardElevation">0dp</item>
+        <item name="cardCornerRadius">6dp</item>
         <item name="android:layout_marginStart">@dimen/cardview_margin_start</item>
         <item name="android:layout_marginEnd">@dimen/cardview_margin_start</item>
-        <item name="android:layout_marginTop">@dimen/cardview_margin_top</item>
-        <item name="android:layout_marginBottom">@dimen/cardview_margin_top</item>
+        <item name="android:layout_marginTop">8dp</item>
     </style>
 
     <style name="DyXposedCardView.Material">
         <item name="android:clickable">true</item>
+        <item name="android:longClickable">true</item>
         <item name="android:foreground">?android:selectableItemBackground</item>
         <item name="android:stateListAnimator">@animator/anim_pressed_float</item>
     </style>
 
     <style name="DyXposedCardView.Material.Light">
-        <item name="cardBackgroundColor">@color/light</item>
+        <item name="cardBackgroundColor">@color/cardview_bg</item>
     </style>
 
 </resources>

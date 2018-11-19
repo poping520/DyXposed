@@ -10,6 +10,8 @@
     <string name="success">success</string>
     <string name="understand">OK</string>
 
+    <string name="delete_module">Delete Module</string>
+
     <string name="dialog_msg_xposed_module_not_active"></string>
     <string name="enable_module">enable module</string>
     <string name="dialog_msg_xposed_not_install"></string>

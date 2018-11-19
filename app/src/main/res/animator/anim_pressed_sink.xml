@@ -15,7 +15,7 @@
             android:duration="@integer/shortAnimTime_150"
             android:interpolator="@android:anim/accelerate_interpolator"
             android:propertyName="translationZ"
-            android:valueTo="3.3dp"
+            android:valueTo="@dimen/cardview_amin_translation_z"
             android:valueType="floatType" />
     </item>
 </selector>
