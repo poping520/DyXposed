@@ -9,6 +9,7 @@
     <string name="cancel">cancel</string>
     <string name="success">success</string>
     <string name="understand">OK</string>
+    <string name="undo">UNDO</string>
 
     <string name="delete_module">Delete Module</string>
 
@@ -52,6 +53,11 @@
     <string name="dialog_msg_module_add_succ">module %1$s added successfully</string>
     <string name="dialog_title_upgrade_module">upgrade module</string>
     <string name="dialog_msg_upgrade_module">
-        <Date><![CDATA[are you sure upgrade<b>%1$s</b>?<p>now version：<b>%2$s</b><p>new version：<b>%3$s</b>]]></Date>
+        <Date><![CDATA[do you want to upgrade <b>%1$s</b>?<p>now version：<b>%2$s</b><p>new version：<b>%3$s</b>]]></Date>
     </string>
+
+    <string name="dialog_msg_delete_module">
+        <Date><![CDATA[are you sure want to delete <b>%1$s</b>?]]></Date>
+    </string>
+    <string name="snackbar_delete_module_confirm">%1$s has been remove</string>
 </resources>

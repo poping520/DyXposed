@@ -1,6 +1,7 @@
 package com.poping520.dyxposed.ui;
 
 import android.animation.ObjectAnimator;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -21,7 +22,6 @@ import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModulePickerAdapter;
 import com.poping520.dyxposed.api.AnnotationProcessor;
 import com.poping520.dyxposed.framework.DyXCompiler;
-import com.poping520.dyxposed.framework.DyXContext;
 import com.poping520.dyxposed.framework.ModuleDBHelper;
 import com.poping520.dyxposed.model.FileItem;
 import com.poping520.dyxposed.model.Module;
@@ -29,7 +29,6 @@ import com.poping520.dyxposed.model.Result;
 import com.poping520.dyxposed.util.FileUtil;
 import com.poping520.dyxposed.util.ModuleUtil;
 import com.poping520.open.mdialog.MDialog;
-import com.poping520.open.mdialog.MDialogAction;
 
 import java.io.IOException;
 
@@ -56,6 +55,8 @@ public class ModulePickerActivity extends AppCompatActivity {
 
     // 错误码: 模块添加成功
     private static final int ERR_CODE_MODULE_ADD_SUCC = 0x1;
+
+    public static final String EXTRA_KEY_MODULE_ID = "ModuleId";
 
     @Nullable
     private FileItem mSelectedFile;
@@ -103,8 +104,10 @@ public class ModulePickerActivity extends AppCompatActivity {
         initRecyclerView();
     }
 
-    private void onResult() {
-        setResult(0);
+    private void onResult(String moduleId) {
+        final Intent intent = new Intent();
+        intent.putExtra(EXTRA_KEY_MODULE_ID, moduleId);
+        setResult(RESULT_OK, intent);
         finish();
     }
 
@@ -146,7 +149,7 @@ public class ModulePickerActivity extends AppCompatActivity {
 
             // 注解处理
             String dexPath = compile.obj;
-            final Result<Module> process = AnnotationProcessor.process(dexPath);
+            final Result<Module> process = AnnotationProcessor.processDyXApi(dexPath);
             if (!process.succ) {
                 mUiHandler.sendMessage(
                         mUiHandler.obtainMessage(ERR_CODE_ILLEGAL_MODULE, process.errMsg)
@@ -173,12 +176,12 @@ public class ModulePickerActivity extends AppCompatActivity {
         try {
             mDBHelper.insert(module, FileUtil.readBytes(dexPath, true));
             final MDialog dialog = new MDialog.Builder(this)
-                    .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
+                    .setHeaderBgColorRes(R.color.colorPrimary)
                     .setHeaderPic(R.drawable.ic_success_white_24dp)
                     .setTitle(R.string.success)
                     .setMessage(R.string.dialog_msg_module_add_succ, ModuleUtil.getShowName(module))
                     .setPositiveButton(R.string.ok, (mDialog, mDialogAction) -> {
-                        onResult();
+                        onResult(module.id);
                     })
                     .create();
             dialog.getNegativeButton().setVisibility(View.INVISIBLE);
@@ -198,20 +201,15 @@ public class ModulePickerActivity extends AppCompatActivity {
                 e.printStackTrace();
             } finally {
                 FileUtil.remove(newDexPath);
-                onResult();
+                onResult(newModule.id);
             }
         } else {
-            String msg = String.format(
-                    DyXContext.getStringFromRes(R.string.dialog_msg_upgrade_module),
-                    ModuleUtil.getShowName(newModule),
-                    oldVer,
-                    newModule.version
-            );
             new MDialog.Builder(this)
-                    .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
+                    .setHeaderBgColorRes(R.color.colorPrimary)
                     .setHeaderPic(R.drawable.ic_upgrade_white_24dp)
                     .setTitle(R.string.dialog_title_upgrade_module)
-                    .setHTMLMessage(msg)
+                    .setHTMLMessage(R.string.dialog_msg_upgrade_module,
+                            ModuleUtil.getShowName(newModule), oldVer, newModule.version)
                     .setPositiveButton(R.string.ok, (mDialog, mDialogAction) -> {
                         try {
                             mDBHelper.update(newModule, FileUtil.readBytes(newDexPath, true));
@@ -219,7 +217,7 @@ public class ModulePickerActivity extends AppCompatActivity {
                             e.printStackTrace();
                         } finally {
                             FileUtil.remove(newDexPath);
-                            onResult();
+                            onResult(newModule.id);
                         }
                     })
                     .setNegativeButton(R.string.cancel, null)
@@ -230,7 +228,7 @@ public class ModulePickerActivity extends AppCompatActivity {
 
     private void makeDialog(@StringRes int title, String msg) {
         new MDialog.Builder(this)
-                .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
+                .setHeaderBgColorRes(R.color.colorPrimary)
                 .setHeaderPic(R.drawable.ic_error_white_24dp)
                 .setTitle(title)
                 .setMessage(msg)

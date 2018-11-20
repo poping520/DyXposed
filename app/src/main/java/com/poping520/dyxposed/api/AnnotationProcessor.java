@@ -2,9 +2,10 @@ package com.poping520.dyxposed.api;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.poping520.dyxposed.R;
-import com.poping520.dyxposed.annotation.MustNonNull;
+import com.poping520.dyxposed.annotation.MustNonEmpty;
 import com.poping520.dyxposed.framework.DyXContext;
 import com.poping520.dyxposed.framework.Env;
 import com.poping520.dyxposed.model.Result;
@@ -16,6 +17,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -38,8 +40,56 @@ public final class AnnotationProcessor {
             DyXTargetApp.class,
     };
 
+    /**
+     * {@link MustNonEmpty} 注解处理, 校验类对象合法性
+     *
+     * @param obj 要处理的类对象
+     * @return 返回集合装有非法成员变量的变量名或显示名称, 即集合为空, 对象合法
+     * @see MustNonEmpty
+     */
+    @NonNull
+    public static List<String> processMustNonEmpty(Object obj) {
+        if (obj == null)
+            throw new IllegalArgumentException();
+
+        List<String> list = new ArrayList<>();
+        final Field[] fields = obj.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+            if (field.isAnnotationPresent(MustNonEmpty.class)) {
+                Object value = null;
+                try {
+                    value = field.get(obj);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
+                if (value != null) {
+                    if (value instanceof CharSequence && ((CharSequence) value).length() == 0) {
+                        value = null;
+                    } else if (value instanceof Collection && ((Collection) value).size() == 0) {
+                        value = null;
+                    }
+                }
+
+                if (value == null) {
+                    int stringResId = field.getAnnotation(MustNonEmpty.class).value();
+                    String showName = stringResId == 0
+                            ? field.getName()
+                            : DyXContext.getStringFromRes(stringResId);
+                    if (TextUtils.isEmpty(showName))
+                        showName = field.getName();
+
+                    list.add(showName);
+                }
+            }
+        }
+        return list;
+    }
+
     // 处理模块 dex 文件
-    public static Result<Module> process(@NonNull String moduleDexPath) {
+    public static Result<Module> processDyXApi(@NonNull String moduleDexPath) {
         Result<Module> ret = new Result<>();
 
         final Module moduleClzObj = new Module();
@@ -114,7 +164,7 @@ public final class AnnotationProcessor {
         }
         // 获取代理/入口类成员变量的值 赋给 Module 对象
 
-        List<String> nulls = processMustNonNull(moduleClzObj);
+        List<String> nulls = processMustNonEmpty(moduleClzObj);
         if (nulls.isEmpty()) {
             ret.succ = true;
             ret.obj = moduleClzObj;
@@ -126,43 +176,6 @@ public final class AnnotationProcessor {
             ret.errMsg = DyXContext.getStringFromRes(R.string.process_err_module_lack_element, sb.toString());
         }
         return ret;
-    }
-
-    /**
-     * {@link MustNonNull} 注解处理
-     *
-     * @param obj 要处理的类对象
-     * @return 装有成员变量的值为 NULL 的显示名称的集合
-     */
-    @NonNull
-    public static List<String> processMustNonNull(Object obj) {
-        if (obj == null)
-            throw new IllegalArgumentException();
-
-        List<String> list = new ArrayList<>();
-        final Field[] fields = obj.getClass().getFields();
-
-        for (Field field : fields) {
-            if (field.isAnnotationPresent(MustNonNull.class)) {
-                Object value = null;
-                try {
-                    value = field.get(obj);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-
-                if (value == null) {
-                    final MustNonNull ann = field.getAnnotation(MustNonNull.class);
-                    int stringResId = ann.value();
-                    String showName = stringResId
-                            == 0
-                            ? field.getName()
-                            : DyXContext.getStringFromRes(stringResId);
-                    list.add(showName);
-                }
-            }
-        }
-        return list;
     }
 
     // 代理/入口类确认
@@ -219,7 +232,6 @@ public final class AnnotationProcessor {
     private static String getModuleFieldName(Class<? extends Annotation> clz) {
         if (!clz.isAnnotationPresent(DyXApiElement.class))
             throw new IllegalArgumentException();
-        final DyXApiElement element = clz.getAnnotation(DyXApiElement.class);
-        return element.value();
+        return clz.getAnnotation(DyXApiElement.class).value();
     }
 }

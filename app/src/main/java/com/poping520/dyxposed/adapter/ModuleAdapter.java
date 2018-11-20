@@ -14,9 +14,12 @@ import android.widget.TextView;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.model.Module;
+import com.poping520.dyxposed.util.DimenUtil;
 import com.poping520.dyxposed.util.ModuleUtil;
 import com.poping520.dyxposed.util.Objects;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -53,29 +56,66 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
         final Module module = mList.get(position);
 
         holder.mName.setText(ModuleUtil.getShowName(module));
         holder.mDesc.setText(ModuleUtil.getShowDesc(module));
         holder.mVersion.setText(module.version);
         holder.mSwitch.setChecked(module.enable);
-
         holder.mSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            mListener.onModuleSwitchChanged(module, isChecked);
+            mListener.onModuleSwitchChanged(isChecked, module);
         });
 
         holder.itemView.setLongClickable(true);
         holder.itemView.setOnLongClickListener(v -> {
-            final ListPopupWindow pop = new ListPopupWindow(mContext);
-            pop.setAdapter(mPopAdapter);
-            pop.setAnchorView(holder.mName);
-            pop.setModal(true);
-            pop.setHeight(ListPopupWindow.WRAP_CONTENT);
-            pop.setWidth(ListPopupWindow.WRAP_CONTENT);
-            pop.show();
+            onItemLongClick(holder.mDesc, position, module);
             return true;
         });
+    }
+
+    private void onItemLongClick(View anchorView, int moduleItemPosition, Module module) {
+        final ListPopupWindow pop = new ListPopupWindow(mContext);
+        pop.setAdapter(mPopAdapter);
+        pop.setAnchorView(anchorView);
+        pop.setModal(true); // 设置为 true 响应物理键(点返回键 ListPopupWindow 消失)
+        pop.setHeight(ListPopupWindow.WRAP_CONTENT);
+        pop.setWidth(ListPopupWindow.WRAP_CONTENT);
+        final int minWidth = (int) DimenUtil.dp2px(mContext, 120f);
+        pop.setContentWidth(DimenUtil.measureAdapterContentWidth(mContext, mPopAdapter, minWidth));
+        pop.setOnItemClickListener((parent, view, popItemPosition, id) -> {
+            switch (popItemPosition) {
+                case 0:
+                    mListener.onDeleteModuleClick(moduleItemPosition, module);
+                    break;
+            }
+            pop.dismiss();
+        });
+        pop.show();
+    }
+
+    /**
+     * 增加一个条目
+     */
+    public void insertItem(Module module) {
+        mList.add(module);
+        notifyItemInserted(mList.size());
+    }
+
+    /**
+     * 删除一个条目
+     */
+    public void removeItem(int position) {
+        mList.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    /**
+     * 删除撤销
+     */
+    public void undoRemove(int position, Module module) {
+        mList.add(position, module);
+        notifyItemInserted(position);
     }
 
     @Override
@@ -92,12 +132,12 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
         /**
          * 模块开关变化
          */
-        void onModuleSwitchChanged(Module module, boolean isCheck);
+        void onModuleSwitchChanged(boolean isCheck, Module module);
 
         /**
          * 删除模块回调
          */
-        void onDeleteModuleClick(Module module);
+        void onDeleteModuleClick(int position, Module module);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

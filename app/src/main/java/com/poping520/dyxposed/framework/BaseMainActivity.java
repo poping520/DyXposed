@@ -56,7 +56,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
 
     private void handleXposedState() {
         MDialog mDialog = new MDialog.Builder(this)
-                .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
+                .setHeaderBgColorRes(R.color.colorPrimary)
                 .setTitle(R.string.warning)
                 .setNegativeButton(R.string.exit_app, (dialog, mDialogAction) -> killSelf())
                 .setCancelable(false)
@@ -98,7 +98,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
 
         if (list.size() > 0) {
             mPermissionDialog = new MDialog.Builder(this)
-                    .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
+                    .setHeaderBgColorRes(R.color.colorPrimary)
                     .setHeaderPic(R.drawable.ic_security_white_24dp)
                     .setTitle(R.string.permission_dialog_title)
                     .setMessage(R.string.dialog_msg_request_permission)

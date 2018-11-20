@@ -3,7 +3,7 @@ package com.poping520.dyxposed.model;
 import android.support.annotation.Nullable;
 
 import com.poping520.dyxposed.R;
-import com.poping520.dyxposed.annotation.MustNonNull;
+import com.poping520.dyxposed.annotation.MustNonEmpty;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class Module {
     /**
      * 模块唯一标识
      */
-    @MustNonNull(R.string.module_field_id)
+    @MustNonEmpty(R.string.module_field_id)
     public String id;
 
     /**
@@ -59,13 +59,13 @@ public class Module {
     /**
      * 入口类 类名
      */
-    @MustNonNull(R.string.module_field_entry_class)
+    @MustNonEmpty(R.string.module_field_entry_class)
     public String entryClass;
 
     /**
      * 入口 方法名
      */
-    @MustNonNull(R.string.module_field_entry_method)
+    @MustNonEmpty(R.string.module_field_entry_method)
     public String entryMethod;
 
     /**

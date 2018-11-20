@@ -11,6 +11,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,6 +34,9 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.poping520.dyxposed.util.ModuleUtil.*;
 
 
 public class MainActivity extends BaseMainActivity {
@@ -44,9 +48,11 @@ public class MainActivity extends BaseMainActivity {
 
     private final static int MSG_EXEC_SU = 0x1;
 
+    private FloatingActionButton mFAB;
     private TextView mTvHint;
     private ModuleDBHelper mDBHelper;
     private Env mEnv;
+    private ModuleAdapter mAdapter;
 
     private Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
@@ -84,19 +90,19 @@ public class MainActivity extends BaseMainActivity {
     }
 
     private void initFAB() {
-        final FloatingActionButton fab = findViewById(R.id.fab);
+        mFAB = findViewById(R.id.fab);
 
         final Env env = Env.getInstance();
 
         if (env.isWorkModeNotConfigure()) {
-            fab.setImageResource(R.drawable.ic_build_white_24dp);
+            mFAB.setImageResource(R.drawable.ic_build_white_24dp);
         }
 
-        fab.setOnClickListener(v -> {
+        mFAB.setOnClickListener(v -> {
             // 选择工作模式
             if (env.isWorkModeNotConfigure()) {
                 final MDialog mDialog = new MDialog.Builder(this)
-                        .setHeaderBgColor(getResources().getColor(R.color.colorPrimary))
+                        .setHeaderBgColorRes(R.color.colorPrimary)
                         .setHeaderPic(R.drawable.ic_build_white_24dp)
                         .setTitle(R.string.dialog_title_select_work_mode)
                         .setCancelable(false)
@@ -116,7 +122,7 @@ public class MainActivity extends BaseMainActivity {
                                 mDialogAction == MDialogAction.NEGATIVE
                                         ? Env.MODE_NORMAL : Env.MODE_ROOT
                         );
-                        fab.setImageResource(R.drawable.ic_add_white_24dp);
+                        mFAB.setImageResource(R.drawable.ic_add_white_24dp);
                     });
 
                 } else { // 设备未ROOT
@@ -175,10 +181,10 @@ public class MainActivity extends BaseMainActivity {
             mTvHint.setText(R.string.hint_add_module);
             return;
         }
-        final ModuleAdapter adapter = new ModuleAdapter(this, list);
-        adapter.setMultiListener(new ModuleAdapter.MultiListener() {
+        mAdapter = new ModuleAdapter(this, list);
+        mAdapter.setMultiListener(new ModuleAdapter.MultiListener() {
             @Override
-            public void onModuleSwitchChanged(Module module, boolean isCheck) {
+            public void onModuleSwitchChanged(boolean isCheck, Module module) {
                 String moduleId = module.id;
                 mDBHelper.update(moduleId, isCheck);
                 if (isCheck) {
@@ -195,21 +201,63 @@ public class MainActivity extends BaseMainActivity {
             }
 
             @Override
-            public void onDeleteModuleClick(Module module) {
-
+            public void onDeleteModuleClick(int position, Module module) {
+                new MDialog.Builder(MainActivity.this)
+                        .setHeaderBgColorRes(R.color.colorPrimary)
+                        .setHeaderPic(R.drawable.ic_delete_white_24dp)
+                        .setTitle(R.string.delete_module)
+                        .setHTMLMessage(R.string.dialog_msg_delete_module, getShowName(module))
+                        .setPositiveButton(R.string.ok, (mDialog, mDialogAction) -> {
+                            deleteModuleWithUndo(position, module);
+                        })
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
             }
         });
 
-        rvMain.setAdapter(adapter);
+        rvMain.setAdapter(mAdapter);
+    }
+
+    // 从数据库删除模块
+    private void deleteModuleWithUndo(int position, Module module) {
+        mAdapter.removeItem(position);
+
+        final String msg = getString(R.string.snackbar_delete_module_confirm, getShowName(module));
+        AtomicBoolean confirm = new AtomicBoolean(true);
+        Snackbar.make(mFAB, msg, Snackbar.LENGTH_LONG)
+                .setAction(R.string.undo, v -> {
+                    confirm.set(false);
+                    mAdapter.undoRemove(position, module);
+                })
+                .addCallback(new Snackbar.Callback() {
+                    @Override
+                    public void onDismissed(Snackbar transientBottomBar, int event) {
+                        if (confirm.get())
+                            mDBHelper.delete(module.id);
+                    }
+                })
+                .show();
     }
 
     private void snackBar(@StringRes int resId) {
-        Snackbar.make(findViewById(android.R.id.content), resId, Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(mFAB, resId, Snackbar.LENGTH_SHORT).show();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case REQ_CODE_SELECT_MODULE:
+                if (resultCode == RESULT_OK) {
+                    final String moduleId = data.getStringExtra(ModulePickerActivity.EXTRA_KEY_MODULE_ID);
+                    if (TextUtils.isEmpty(moduleId)) {
+                        return;
+                    }
+                    mAdapter.insertItem(mDBHelper.query(moduleId));
+                }
+                break;
+        }
     }
 
     @Override
