@@ -54,6 +54,9 @@ public class MainActivity extends BaseMainActivity {
     private Env mEnv;
     private ModuleAdapter mAdapter;
 
+    /* 所有模块对象 */
+    private List<Module> mAllModule;
+
     private Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
@@ -82,11 +85,20 @@ public class MainActivity extends BaseMainActivity {
         setSupportActionBar(toolbar);
 
         mDBHelper = ModuleDBHelper.getInstance();
+        mAllModule = mDBHelper.queryAll();
         mEnv = Env.getInstance();
 
         mTvHint = findViewById(R.id.tv_hint);
+        if (mEnv.isWorkModeNotConfigure()) {
+            mTvHint.setVisibility(View.VISIBLE);
+            mTvHint.setText(R.string.hint_config_work_mode);
+        } else if (Objects.isEmptyList(mAllModule)) {
+            mTvHint.setVisibility(View.VISIBLE);
+            mTvHint.setText(R.string.hint_add_module);
+        }
+
         initFAB();
-        initRecyclerViews();
+        initRecyclerView();
     }
 
     private void initFAB() {
@@ -163,26 +175,23 @@ public class MainActivity extends BaseMainActivity {
         }).start();
     }
 
-    private void initRecyclerViews() {
+    private void initRecyclerView() {
         final RecyclerView rvMain = findViewById(R.id.rv_main);
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         rvMain.setLayoutManager(llm);
 
-        final List<Module> list = mDBHelper.queryAll();
-
-        if (mEnv.isWorkModeNotConfigure()) {
-            mTvHint.setVisibility(View.VISIBLE);
-            mTvHint.setText(R.string.hint_config_work_mode);
-            return;
-        } else if (Objects.isEmptyList(list)) {
-            mTvHint.setVisibility(View.VISIBLE);
-            mTvHint.setText(R.string.hint_add_module);
-            return;
-        }
-        mAdapter = new ModuleAdapter(this, list);
+        mAdapter = new ModuleAdapter(this, mAllModule);
         mAdapter.setMultiListener(new ModuleAdapter.MultiListener() {
+
+            @Override
+            public void onInsertModule(Module module) {
+                if (mTvHint.getVisibility() == View.VISIBLE) {
+                    mTvHint.setVisibility(View.GONE);
+                }
+            }
+
             @Override
             public void onModuleSwitchChanged(boolean isCheck, Module module) {
                 String moduleId = module.id;
@@ -280,7 +289,7 @@ public class MainActivity extends BaseMainActivity {
         if (mTvHint == null || mDBHelper == null)
             return;
         if (mTvHint.getVisibility() == View.VISIBLE) {
-            if (Objects.isEmptyList(mDBHelper.queryAll())) {
+            if (Objects.isEmptyList(mAllModule)) {
                 mTvHint.setText(R.string.hint_add_module);
             }
         }

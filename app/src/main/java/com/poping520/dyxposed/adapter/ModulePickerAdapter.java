@@ -137,8 +137,10 @@ public class ModulePickerAdapter extends RecyclerView.Adapter<ModulePickerAdapte
 
         // 点击操作
         holder.itemView.setOnClickListener(v -> {
+            /* 如果有选中的条目 则重置选中 */
             if (hasSelectedItem()) {
                 releaseSelected(true);
+                return;
             }
 
             switch (item.type) {

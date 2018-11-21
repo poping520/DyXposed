@@ -22,6 +22,18 @@ import java.io.InputStream;
  */
 public final class FileUtil {
 
+    /**
+     * 解压 zip 文件
+     *
+     * @param src
+     * @param dst
+     * @param force
+     * @return
+     */
+    public static void unZip(String src, String dst, boolean force) throws IOException {
+
+    }
+
     public static boolean writeStringToFile(String dstPath, String str, boolean force)
             throws IOException {
         return writeStringToFile(new File(dstPath), str, force);
@@ -30,10 +42,10 @@ public final class FileUtil {
     /**
      * 字符串对象保存到文件
      *
-     * @param dst
-     * @param str
-     * @param force
-     * @return
+     * @param dst   输出文件
+     * @param str   要写入字符串
+     * @param force 存在同名文件/夹是否删除
+     * @return 是否成功
      */
     public static boolean writeStringToFile(File dst, String str, boolean force) throws IOException {
         if (dst.exists()) {

@@ -98,8 +98,13 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
      * 增加一个条目
      */
     public void insertItem(Module module) {
+        if (module == null) {
+            return;
+        }
+
         mList.add(module);
         notifyItemInserted(mList.size());
+        mListener.onInsertModule(module);
     }
 
     /**
@@ -118,6 +123,13 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
         notifyItemInserted(position);
     }
 
+    /**
+     * 更新条目
+     */
+    public void updateItem(Module module) {
+
+    }
+
     @Override
     public int getItemCount() {
         return mList == null || mList.isEmpty() ? 0 : mList.size();
@@ -128,6 +140,11 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
     }
 
     public interface MultiListener {
+
+        /**
+         * 添加一个模块
+         */
+        void onInsertModule(Module module);
 
         /**
          * 模块开关变化

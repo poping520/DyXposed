@@ -26,6 +26,7 @@ import com.poping520.dyxposed.framework.ModuleDBHelper;
 import com.poping520.dyxposed.model.FileItem;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.model.Result;
+import com.poping520.dyxposed.util.DimenUtil;
 import com.poping520.dyxposed.util.FileUtil;
 import com.poping520.dyxposed.util.ModuleUtil;
 import com.poping520.open.mdialog.MDialog;
@@ -265,7 +266,7 @@ public class ModulePickerActivity extends AppCompatActivity {
         rv.setAdapter(mAdapter);
     }
 
-    // fab 缩放动画
+    // fab 动画效果
     private void fabScaleAnim(boolean show) {
         if (mFabState == show) {
             return;
@@ -276,19 +277,15 @@ public class ModulePickerActivity extends AppCompatActivity {
             mFab.setVisibility(View.VISIBLE);
         }
         float from, to;
+        final float height = DimenUtil.dp2px(this, 88f);
 
-        from = show ? 0f : 1f;
-        to = show ? 1f : 0f;
+        from = show ? height : 0f;
+        to = show ? 0f : height;
 
-        final ObjectAnimator scaleX = ofFloat(mFab, "scaleX", from, to)
+        final ObjectAnimator translationY = ofFloat(mFab, "translationY", from, to)
                 .setDuration(150);
-        scaleX.setInterpolator(new DecelerateInterpolator());
-        scaleX.start();
-
-        final ObjectAnimator scaleY = ofFloat(mFab, "scaleY", from, to)
-                .setDuration(150);
-        scaleY.setInterpolator(new DecelerateInterpolator());
-        scaleY.start();
+        translationY.setInterpolator(new DecelerateInterpolator());
+        translationY.start();
     }
 
     @Override
