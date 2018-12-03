@@ -59,6 +59,15 @@ public class ModulePickerActivity extends AppCompatActivity {
 
     public static final String EXTRA_KEY_MODULE_ID = "ModuleId";
 
+    // 返回事件类型
+    public static final String EXTRA_KEY_ACTION = "Action";
+
+    // 增加模块
+    public static final int ACTION_INSERT_MODULE = 0x10;
+
+    // 更新模块
+    public static final int ACTION_UPDATE_MODULE = 0x11;
+
     @Nullable
     private FileItem mSelectedFile;
 
@@ -105,9 +114,10 @@ public class ModulePickerActivity extends AppCompatActivity {
         initRecyclerView();
     }
 
-    private void onResult(String moduleId) {
+    private void onResult(String moduleId, int action) {
         final Intent intent = new Intent();
         intent.putExtra(EXTRA_KEY_MODULE_ID, moduleId);
+        intent.putExtra(EXTRA_KEY_ACTION, action);
         setResult(RESULT_OK, intent);
         finish();
     }
@@ -166,7 +176,7 @@ public class ModulePickerActivity extends AppCompatActivity {
                 mUiHandler.post(() -> onInsertModule(module, dexPath));
             } else {
                 // 已存在 ID 相同的模块
-                mUiHandler.post(() -> onUpdateModule(module, dexPath, last.version, force));
+                mUiHandler.post(() -> onUpdateModule(module, last, dexPath, force));
             }
         }).start();
     }
@@ -180,9 +190,9 @@ public class ModulePickerActivity extends AppCompatActivity {
                     .setHeaderBgColorRes(R.color.colorPrimary)
                     .setHeaderPic(R.drawable.ic_success_white_24dp)
                     .setTitle(R.string.success)
-                    .setMessage(R.string.dialog_msg_module_add_succ, ModuleUtil.getShowName(module))
+                    .setHTMLMessage(R.string.dialog_msg_module_add_succ, ModuleUtil.getShowName(module))
                     .setPositiveButton(R.string.ok, (mDialog, mDialogAction) -> {
-                        onResult(module.id);
+                        onResult(module.id, ACTION_INSERT_MODULE);
                     })
                     .create();
             dialog.getNegativeButton().setVisibility(View.INVISIBLE);
@@ -194,38 +204,48 @@ public class ModulePickerActivity extends AppCompatActivity {
 
     // 更新模块
     @UiThread
-    private void onUpdateModule(Module newModule, String newDexPath, String oldVer, boolean force) {
+    private void onUpdateModule(Module _new, Module _old, String newDexPath, boolean force) {
+        // 保存模块开关状态
+        _new.enable = _old.enable;
+
         if (force) {
             try {
-                mDBHelper.update(newModule, FileUtil.readBytes(newDexPath, true));
+                mDBHelper.update(_new, FileUtil.readBytes(newDexPath, true));
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 FileUtil.remove(newDexPath);
-                onResult(newModule.id);
+                onResult(_new.id, ACTION_UPDATE_MODULE);
             }
         } else {
-            new MDialog.Builder(this)
+            String newVer = _new.version;
+            String oldVer = _old.version;
+            String showName = ModuleUtil.getShowName(_new);
+
+            final MDialog.Builder builder = new MDialog.Builder(this)
                     .setHeaderBgColorRes(R.color.colorPrimary)
                     .setHeaderPic(R.drawable.ic_upgrade_white_24dp)
                     .setTitle(R.string.dialog_title_upgrade_module)
-                    .setHTMLMessage(R.string.dialog_msg_upgrade_module,
-                            ModuleUtil.getShowName(newModule), oldVer, newModule.version)
                     .setPositiveButton(R.string.ok, (mDialog, mDialogAction) -> {
                         try {
-                            mDBHelper.update(newModule, FileUtil.readBytes(newDexPath, true));
+                            mDBHelper.update(_new, FileUtil.readBytes(newDexPath, true));
                         } catch (IOException e) {
                             e.printStackTrace();
                         } finally {
                             FileUtil.remove(newDexPath);
-                            onResult(newModule.id);
+                            onResult(_new.id, ACTION_UPDATE_MODULE);
                         }
                     })
-                    .setNegativeButton(R.string.cancel, null)
-                    .show();
+                    .setNegativeButton(R.string.cancel, null);
+
+            if (newVer.equals(oldVer)) {
+                builder.setHTMLMessage(R.string.dialog_msg_upgrade_module_overly, showName, newVer);
+            } else {
+                builder.setHTMLMessage(R.string.dialog_msg_upgrade_module, showName, oldVer, _new.version);
+            }
+            builder.show();
         }
     }
-
 
     private void makeDialog(@StringRes int title, String msg) {
         new MDialog.Builder(this)

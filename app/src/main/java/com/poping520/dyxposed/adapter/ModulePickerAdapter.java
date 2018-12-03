@@ -99,6 +99,7 @@ public class ModulePickerAdapter extends RecyclerView.Adapter<ModulePickerAdapte
             // 获取当前栈顶元素
             mList = mStack.getFirst();
             notifyDataSetChanged();
+            releaseSelected(false);
             return ~NULL_STACK;
         }
     }
@@ -191,7 +192,9 @@ public class ModulePickerAdapter extends RecyclerView.Adapter<ModulePickerAdapte
      * @param notify 是否通知监听回调
      */
     private void releaseSelected(boolean notify) {
-        mSelectedItemView.setBackground(null);
+        if (mSelectedItemView != null) {
+            mSelectedItemView.setBackground(null);
+        }
         mSelectedItem = null;
         mSelectedItemView = null;
         if (notify) {

@@ -107,7 +107,6 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
                     })
                     .setCancelable(false)
                     .create();
-            mPermissionDialog.getNegativeButton().setVisibility(View.INVISIBLE);
             mPermissionDialog.show();
         } else {
             onCheckPermissionResult(true);

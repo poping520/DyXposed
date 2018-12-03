@@ -126,8 +126,15 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
     /**
      * 更新条目
      */
-    public void updateItem(Module module) {
-
+    public void updateItem(String moduleId) {
+        int updatePosition = 0;
+        for (Module module : mList) {
+            if (moduleId.equals(module.id)) {
+                break;
+            }
+            ++updatePosition;
+        }
+        notifyItemChanged(updatePosition);
     }
 
     @Override

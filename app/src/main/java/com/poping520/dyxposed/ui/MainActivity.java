@@ -260,10 +260,17 @@ public class MainActivity extends BaseMainActivity {
             case REQ_CODE_SELECT_MODULE:
                 if (resultCode == RESULT_OK) {
                     final String moduleId = data.getStringExtra(ModulePickerActivity.EXTRA_KEY_MODULE_ID);
+                    final int action = data.getIntExtra(ModulePickerActivity.EXTRA_KEY_ACTION, 0);
                     if (TextUtils.isEmpty(moduleId)) {
                         return;
                     }
-                    mAdapter.insertItem(mDBHelper.query(moduleId));
+
+                    if (action == ModulePickerActivity.ACTION_INSERT_MODULE) {
+                        mAdapter.insertItem(mDBHelper.query(moduleId));
+                    } else if (action == ModulePickerActivity.ACTION_UPDATE_MODULE) {
+                        mAdapter.updateItem(moduleId);
+                    }
+
                 }
                 break;
         }
@@ -277,11 +284,13 @@ public class MainActivity extends BaseMainActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        final int id = item.getItemId();
+        switch (id) {
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
         }
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     @Override

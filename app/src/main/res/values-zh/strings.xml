@@ -50,14 +50,23 @@
 
     <string name="dialog_title_compile_failed">编译失败</string>
     <string name="dialog_title_illegal_module">模块不合法</string>
-    <string name="dialog_msg_module_add_succ">模块 %1$s 添加成功</string>
+    <string name="dialog_msg_module_add_succ">
+        <Date><![CDATA[模块<b>%1$s</b>添加成功]]></Date>
+    </string>
     <string name="dialog_title_upgrade_module">升级模块</string>
     <string name="dialog_msg_upgrade_module">
         <Date><![CDATA[你确定要升级<b>%1$s</b>吗？<p>当前：<b>%2$s</b><p>新版：<b>%3$s</b>]]></Date>
     </string>
+    <string name="dialog_msg_upgrade_module_overly">
+        <Date><![CDATA[当前已存在相同版本的<b>「%1$s %2$s」</b>，你确定要覆盖原版吗？]]></Date>
+    </string>
 
     <string name="dialog_msg_delete_module">
-        <Date><![CDATA[你确定要删除<b>%1$s</b>吗？]]></Date>
+        <Date><![CDATA[你确定要删除<b>「%1$s」</b>吗？]]></Date>
     </string>
     <string name="snackbar_delete_module_confirm">已删除%1$s</string>
+
+    <string name="pref_key_compile_env">compile_env</string>
+    <string name="pref_title_compile_env">编译环境</string>
+    <string name="pref_summary_compile_env">配置编译器环境变量</string>
 </resources>

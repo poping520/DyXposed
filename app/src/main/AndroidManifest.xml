@@ -52,7 +52,9 @@
         </activity>
         <activity
             android:name=".ui.SettingsActivity"
-            android:parentActivityName=".ui.ModulePickerActivity">
+            android:label="@string/action_settings"
+            android:parentActivityName=".ui.ModulePickerActivity"
+            android:theme="@style/AppTheme.Settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.poping520.dyxposed.ui.MainActivity" />
