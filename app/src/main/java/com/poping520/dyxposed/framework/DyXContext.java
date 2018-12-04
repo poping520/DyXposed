@@ -5,10 +5,8 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.StringRes;
-import android.support.design.widget.Snackbar;
 
 import com.poping520.dyxposed.BuildConfig;
-import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.util.Objects;
 
 import java.io.File;
@@ -26,6 +24,9 @@ public class DyXContext {
         private Activity mMainActivity;
     }
 
+    /**
+     * 本程序的名称
+     */
     public static final String APPLICATION_NAME = "DyXposed";
 
     private static final String SPK_LAUNCH_TIMES = "LaunchTimes";
@@ -46,36 +47,69 @@ public class DyXContext {
 
     void init(BaseMainActivity act) {
         mHolder.mMainActivity = act;
-        final SharedPreferences sp = getAppSharedPrefs();
-        int lastTimes = sp.getInt(SPK_LAUNCH_TIMES, 0);
-        sp.edit().putInt(SPK_LAUNCH_TIMES, ++lastTimes).apply();
+
+        // 更新启动次数
+        int lastTimes = get(SPK_LAUNCH_TIMES, 0);
+        save(SPK_LAUNCH_TIMES, ++lastTimes);
     }
 
+    /**
+     * @return 全局 Context (Application Context) 对象
+     */
     public static Context getApplicationContext() {
         final Context context = getInstance().mHolder.mApplicationContext;
         if (context == null)
-            //TODO
-            throw new DyXRuntimeException("...");
+            throw new IllegalStateException("...");
 
         return context;
     }
 
+    /**
+     * @return 程序私有数据目录
+     */
+    public static File getAppDataDir() {
+        return getCacheDir().getParentFile();
+    }
+
+    /**
+     * @return {@link Context#getFilesDir()}
+     */
+    public static File getFilesDir() {
+        return getApplicationContext().getFilesDir();
+    }
+
+    /**
+     * @return {@link Context#getCacheDir()}
+     */
     public static File getCacheDir() {
         return getApplicationContext().getCacheDir();
     }
 
+    /**
+     * @return {@link Context#getString(int)}
+     */
     public static String getStringFromRes(@StringRes int resId) {
         return getApplicationContext().getString(resId);
     }
 
+    /**
+     * @return {@link Context#getString(int, Object...)}
+     */
     public static String getStringFromRes(@StringRes int resId, Object... formatArgs) {
         return getApplicationContext().getString(resId, formatArgs);
     }
 
+    // 程序默认的 SharedPreferences
     private static SharedPreferences getAppSharedPrefs() {
         return getApplicationContext().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE);
     }
 
+    /**
+     * 保存简单键值对数据到程序默认的 SharedPreferences
+     *
+     * @param key   key
+     * @param value value
+     */
     public static <T> void save(String key, T value) {
         final SharedPreferences.Editor edit = getAppSharedPrefs().edit();
         if (value instanceof String)
@@ -89,6 +123,13 @@ public class DyXContext {
         edit.apply();
     }
 
+    /**
+     * 从程序默认的 SharedPreferences 中取数据
+     *
+     * @param key          key
+     * @param defaultValue default value
+     * @return value
+     */
     @SuppressWarnings("unchecked")
     public static <T> T get(String key, T defaultValue) {
         Objects.requireNonNull(defaultValue, "must NonNull");
@@ -103,7 +144,10 @@ public class DyXContext {
             throw new IllegalArgumentException("not implement");
     }
 
+    /**
+     * @return 程序是否首次启动
+     */
     static boolean isLaunchFirstTime() {
-        return getAppSharedPrefs().getInt(SPK_LAUNCH_TIMES, 0) == 0;
+        return get(SPK_LAUNCH_TIMES, 0) == 0;
     }
 }

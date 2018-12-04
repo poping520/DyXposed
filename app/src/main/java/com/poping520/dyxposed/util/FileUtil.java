@@ -128,6 +128,13 @@ public final class FileUtil {
         return baos.toByteArray();
     }
 
+    /**
+     * 验证文件是否存在和 md5 是否一致
+     *
+     * @param file 目标文件
+     * @param md5  md5值
+     * @return 是否验证成功
+     */
     public static boolean verifyMD5(File file, String md5) {
         if (!file.exists()) return false;
         return md5.equalsIgnoreCase(CryptoUtil.getFileMD5(file));

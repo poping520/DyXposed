@@ -20,9 +20,9 @@ import java.io.IOException;
 import dalvik.system.PathClassLoader;
 
 /**
- * WORK DIR     /sdcard/DyXposed
- * API DIR      /sdcard/DyXposed/api
- * CLASS DIR    /sdcard/DyXposed/class
+ * WORK DIR     /data/data/package_name/files
+ * API DIR      WORK DIR/api
+ * CLASS DIR    WORK DIR/class
  * <p>
  * ROOT
  * - DEX DIR  /data/DyXposed/module
@@ -54,18 +54,29 @@ public class Env {
 
     private static final String DYXPOSED_RELATIVE_DIR = "/DyXposed";
 
+    private static final String ROOT_RELATIVE_DIR = "shared";
+
+    private static final String MODULE_RELATIVE_DIR = "module";
+
     // 工作&普通模式 目录
+    @Deprecated
     private static final String WORK_SD_DIR =
             Environment.getExternalStorageDirectory().getAbsolutePath() + DYXPOSED_RELATIVE_DIR;
 
-    private static final String ROOT_RELATIVE_DIR = "shared";
-    private static final String MODULE_RELATIVE_DIR = "module";
+    // 编译环境目录
+    private static final String COMPILE_ENV = DyXContext.getFilesDir().getAbsolutePath();
+
     private static final String DYXPOSED_LIB_RELATIVE_PATH = "lib/lib-dyxposed.jar";
+
     private static final String SPK_WORK_MODE = "WorkMode";
     private static final String SPK_DEVICE_ROOT = "DeviceRoot";
 
+    /**
+     * Assets 资源文件管理
+     */
     public enum Assets {
 
+        // /data/data/com.poping520.dyxposed/files/api/api-xposed-82.jar
         API_XPOSED("api/api-xposed-82.jar", "87B9A136AE65B583E78B02F51C27D4A8"),
 
         API_ANDROID("api/api-android-28.jar", "F0A233AD65F0B1CC5CA461B404767658"),
@@ -77,22 +88,46 @@ public class Env {
         private String assetPath;
         private String md5;
 
+        /**
+         * @param assetPath assets 路径
+         * @param md5       文件 md5
+         */
         Assets(String assetPath, String md5) {
             this.assetPath = assetPath;
             this.md5 = md5;
         }
 
+        /**
+         * 释放 Assets 资源文件到 WORK DIR
+         *
+         * <p>
+         * save path = WORK DIR + assetPath
+         *
+         * @return 保存路径
+         */
         String release() {
-            final File file = new File(WORK_SD_DIR, assetPath);
-            if (!FileUtil.verifyMD5(file, md5)) {
-                try {
-                    FileUtil.unZipAsset(DyXContext.getApplicationContext(), assetPath, file.getAbsolutePath(), true);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    throw new DyXRuntimeException("");
-                }
+            try {
+                return release(COMPILE_ENV);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new DyXRuntimeException("...");
             }
-            return file.getAbsolutePath();
+        }
+
+        /**
+         * 释放 Assets 资源到指定文件夹下
+         *
+         * @param dir 指定的文件夹路径
+         * @return 输出文件绝对路径
+         */
+        public String release(String dir) throws IOException {
+            final String name = new File(dir, assetPath).getName();
+
+            final File file = new File(dir, name);
+            final String absPath = file.getAbsolutePath();
+            if (FileUtil.verifyMD5(file, md5)) return absPath;
+            FileUtil.unZipAsset(DyXContext.getApplicationContext(), assetPath, absPath, true);
+            return absPath;
         }
     }
 
@@ -202,7 +237,7 @@ public class Env {
      */
     private File getWorkDir() {
         if (isRootWorkMode()) {
-            final File appDataDir = DyXContext.getCacheDir().getParentFile();
+            final File appDataDir = DyXContext.getAppDataDir();
             final File file = new File(appDataDir, ROOT_RELATIVE_DIR);
             if (!file.exists()) {
                 Shell.exec(true, true,
