@@ -29,6 +29,8 @@ public class DyXContext {
      */
     public static final String APPLICATION_NAME = "DyXposed";
 
+    public static final String APP_DB_NAME = DyXContext.APPLICATION_NAME + ".db";
+
     private static final String SPK_LAUNCH_TIMES = "LaunchTimes";
 
     private final InnerHolder mHolder;

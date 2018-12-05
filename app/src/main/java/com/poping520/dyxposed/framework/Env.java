@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.text.TextUtils;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
+import com.poping520.dyxposed.model.CompileLib;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.system.AndroidSystem;
 import com.poping520.dyxposed.system.Shell;
@@ -16,6 +17,8 @@ import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import dalvik.system.PathClassLoader;
 
@@ -121,13 +124,18 @@ public class Env {
          * @return 输出文件绝对路径
          */
         public String release(String dir) throws IOException {
-            final String name = new File(dir, assetPath).getName();
-
-            final File file = new File(dir, name);
+            final File file = new File(dir, getName());
             final String absPath = file.getAbsolutePath();
             if (FileUtil.verifyMD5(file, md5)) return absPath;
             FileUtil.unZipAsset(DyXContext.getApplicationContext(), assetPath, absPath, true);
             return absPath;
+        }
+
+        /**
+         * @return 文件名
+         */
+        String getName() {
+            return new File(COMPILE_ENV, assetPath).getName();
         }
     }
 

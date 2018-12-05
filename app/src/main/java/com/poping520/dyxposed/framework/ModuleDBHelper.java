@@ -24,8 +24,6 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
 
     private static final int VERSION = 1;
 
-    private static final String DB_NAME = DyXContext.APPLICATION_NAME + ".db";
-
     private static final ModuleDBHelper INSTANCE = new ModuleDBHelper();
 
     public static ModuleDBHelper getInstance() {
@@ -33,14 +31,14 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
     }
 
     private ModuleDBHelper() {
-        super(DyXContext.getApplicationContext(), DB_NAME, null, VERSION);
+        super(DyXContext.getApplicationContext(), DyXContext.APP_DB_NAME, null, VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         String sql =
                 "create table module(id VARCHAR primary key, author VARCHAR, name TEXT, `desc` TEXT, version VARCHAR, " +
-                        "target TEXT, entryClass VARCHAR, entryMethod VARCHAR, enable INT2, dex BLOB);";
+                        "target TEXT, entryClass VARCHAR, entryMethod VARCHAR, enable INT2, dex BLOB)";
         db.execSQL(sql);
     }
 
