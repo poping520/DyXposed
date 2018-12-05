@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.poping520.dyxposed.model.Library;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.util.JSON;
 
@@ -14,42 +15,57 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
 /**
- * @author WangKZ
+ * Dyxposed 数据库管理类
+ * <p>
+ * Created by WangKZ on 18/12/05.
+ *
+ * @author poping520
  * @version 1.0.0
- * create on 2018/11/15 13:53
  */
-@Deprecated
-public class ModuleDBHelper extends SQLiteOpenHelper {
+public class DyXDBHelper extends SQLiteOpenHelper {
 
     private static final int VERSION = 1;
 
-    private static final ModuleDBHelper INSTANCE = new ModuleDBHelper();
+    private static final DyXDBHelper INSTANCE = new DyXDBHelper();
 
-    public static ModuleDBHelper getInstance() {
+    public static DyXDBHelper getInstance() {
         return INSTANCE;
     }
 
-    private ModuleDBHelper() {
+    private DyXDBHelper() {
         super(DyXContext.getApplicationContext(), DyXContext.APP_DB_NAME, null, VERSION);
     }
 
+    // 创建数据库
     @Override
     public void onCreate(SQLiteDatabase db) {
+        // module 表
         String sql =
-                "create table module(id VARCHAR primary key, author VARCHAR, name TEXT, `desc` TEXT, version VARCHAR, " +
+                "create table if not exists module(id VARCHAR primary key, author VARCHAR, name TEXT, `desc` TEXT, version VARCHAR, " +
                         "target TEXT, entryClass VARCHAR, entryMethod VARCHAR, enable INT2, dex BLOB)";
         db.execSQL(sql);
+
+        // library 表
+        sql = "create table if not exists library(id INTEGER primary key autoincrement, name TEXT, path TEXT, scope VARCHAR, enable INT2)";
+        db.execSQL(sql);
+        // 向表增加默认的 lib
+        final Env.Assets[] assets = Env.Assets.values();
+        for (Env.Assets asset : assets) {
+            final String name = asset.getName();
+            if (name.contains("api")) {
+                insertLib(db, new Library(name, asset.release(), asset.getScope(), true));
+            }
+        }
     }
 
     /**
-     * 向数据库插入一个模块
+     * 向 module 表中增加一个 {@link Module}
      *
      * @param module  模块对象
      * @param dexData 模块 dex(.jar) 字节数组
      */
-    public void insert(Module module, byte[] dexData) {
+    public void insertModule(Module module, byte[] dexData) {
         final SQLiteDatabase db = getWritableDatabase();
         String sql = "insert into module values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         Object[] objs = new Object[]{
@@ -62,7 +78,12 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
         db.execSQL(sql, objs);
     }
 
-    public void delete(String moduleId) {
+    /**
+     * 从 module 表中删除一个模块
+     *
+     * @param moduleId 模块唯一 id
+     */
+    public void deleteModule(String moduleId) {
         final SQLiteDatabase db = getWritableDatabase();
         db.execSQL("delete from module where id = ?", new String[]{moduleId});
     }
@@ -73,9 +94,9 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
      * @param module  模块对象
      * @param dexData 模块 dex(.jar) 字节数组
      */
-    public void update(Module module, byte[] dexData) {
-        delete(module.id);
-        insert(module, dexData);
+    public void updateModule(Module module, byte[] dexData) {
+        deleteModule(module.id);
+        insertModule(module, dexData);
     }
 
     /**
@@ -84,7 +105,7 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
      * @param moduleId 模块唯一 id
      * @param enable   是否启用
      */
-    public void update(String moduleId, boolean enable) {
+    public void updateModule(String moduleId, boolean enable) {
         final SQLiteDatabase db = getWritableDatabase();
         db.execSQL("update module set enable = ? where id = ?",
                 new Object[]{enable, moduleId});
@@ -96,7 +117,7 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
      * @param moduleId 模块唯一 id
      */
     @Nullable
-    public Module query(String moduleId) {
+    public Module queryModule(String moduleId) {
         final SQLiteDatabase db = getReadableDatabase();
         Module module = null;
         final Cursor cursor = db.rawQuery("select * from module where id = ?", new String[]{moduleId});
@@ -114,7 +135,7 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
      * 查询所有模块
      */
     @NonNull
-    public List<Module> queryAll() {
+    public List<Module> queryAllModule() {
         final SQLiteDatabase db = getReadableDatabase();
         List<Module> list = new ArrayList<>();
         final Cursor cursor = db.rawQuery("select * from module", null);
@@ -166,7 +187,7 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
      * @return 模块 dex(.jar)字节数组
      */
     @Nullable
-    public byte[] queryDexBytes(String moduleId) {
+    public byte[] queryModuleDexBytes(String moduleId) {
         final SQLiteDatabase db = getReadableDatabase();
 
         byte[] bytes = null;
@@ -182,8 +203,40 @@ public class ModuleDBHelper extends SQLiteOpenHelper {
         return bytes;
     }
 
+    public void insertLib(Library lib) {
+        insertLib(getWritableDatabase(), lib);
+    }
+
+    private void insertLib(SQLiteDatabase db, Library lib) {
+        String sql = "insert into library(name, path, scope, enable) values(?, ?, ?, ?)";
+        db.execSQL(sql, new Object[]{lib.name, lib.path, lib.scope.name(), lib.enable});
+    }
+
+    @NonNull
+    public List<Library> queryAllLib() {
+        final SQLiteDatabase db = getReadableDatabase();
+        List<Library> list = new ArrayList<>();
+        final Cursor cursor = db.rawQuery("select * from library", null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                list.add(new Library(
+                        cursor.getString(1),
+                        cursor.getString(2),
+                        Library.Scope.valueOf(cursor.getString(3)),
+                        cursor.getInt(4) == 1
+                ));
+            }
+            cursor.close();
+        }
+        return list;
+    }
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
+    }
+
+    boolean isOpen() {
+        return getReadableDatabase().isOpen();
     }
 }

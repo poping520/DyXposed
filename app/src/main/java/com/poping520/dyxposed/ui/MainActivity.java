@@ -22,7 +22,7 @@ import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleAdapter;
 import com.poping520.dyxposed.framework.BaseMainActivity;
 import com.poping520.dyxposed.framework.Env;
-import com.poping520.dyxposed.framework.ModuleDBHelper;
+import com.poping520.dyxposed.framework.DyXDBHelper;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.system.AndroidSystem;
 import com.poping520.dyxposed.system.Shell;
@@ -50,7 +50,6 @@ public class MainActivity extends BaseMainActivity {
 
     private FloatingActionButton mFAB;
     private TextView mTvHint;
-    private ModuleDBHelper mDBHelper;
     private Env mEnv;
     private ModuleAdapter mAdapter;
 
@@ -84,8 +83,7 @@ public class MainActivity extends BaseMainActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mDBHelper = ModuleDBHelper.getInstance();
-        mAllModule = mDBHelper.queryAll();
+        mAllModule = mDBHelper.queryAllModule();
         mEnv = Env.getInstance();
 
         mTvHint = findViewById(R.id.tv_hint);
@@ -195,10 +193,10 @@ public class MainActivity extends BaseMainActivity {
             @Override
             public void onModuleSwitchChanged(boolean isCheck, Module module) {
                 String moduleId = module.id;
-                mDBHelper.update(moduleId, isCheck);
+                mDBHelper.updateModule(moduleId, isCheck);
                 if (isCheck) {
                     try {
-                        mEnv.openModule(module, mDBHelper.queryDexBytes(moduleId));
+                        mEnv.openModule(module, mDBHelper.queryModuleDexBytes(moduleId));
                     } catch (JSONException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
@@ -242,7 +240,7 @@ public class MainActivity extends BaseMainActivity {
                     @Override
                     public void onDismissed(Snackbar transientBottomBar, int event) {
                         if (confirm.get())
-                            mDBHelper.delete(module.id);
+                            mDBHelper.deleteModule(module.id);
                     }
                 })
                 .show();
@@ -266,7 +264,7 @@ public class MainActivity extends BaseMainActivity {
                     }
 
                     if (action == ModulePickerActivity.ACTION_INSERT_MODULE) {
-                        mAdapter.insertItem(mDBHelper.query(moduleId));
+                        mAdapter.insertItem(mDBHelper.queryModule(moduleId));
                     } else if (action == ModulePickerActivity.ACTION_UPDATE_MODULE) {
                         mAdapter.updateItem(moduleId);
                     }

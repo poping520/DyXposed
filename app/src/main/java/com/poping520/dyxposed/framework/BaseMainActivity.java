@@ -38,6 +38,8 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
 
     private MDialog mPermissionDialog;
 
+    protected DyXDBHelper mDBHelper;
+
     private static final String TAG = "BaseMainActivity";
 
     @Override
@@ -46,11 +48,20 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
 
         DyXContext.getInstance().init(this);
 
+        mDBHelper = DyXDBHelper.getInstance();
         // xposed 状态异常
         if (waitHook() && !BuildConfig.DEBUG) {
             handleXposedState();
         } else {
             checkPermission();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mDBHelper.isOpen()) {
+            mDBHelper.close();
         }
     }
 

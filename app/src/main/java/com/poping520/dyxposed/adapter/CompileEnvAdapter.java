@@ -7,11 +7,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.poping520.dyxposed.R;
-import com.poping520.dyxposed.model.CompileLib;
+import com.poping520.dyxposed.model.Library;
 
 import java.util.List;
 
@@ -23,9 +22,9 @@ import java.util.List;
 public class CompileEnvAdapter extends RecyclerView.Adapter<CompileEnvAdapter.ViewHolder> {
 
     private Context mContext;
-    private List<CompileLib> mList;
+    private List<Library> mList;
 
-    public CompileEnvAdapter(Context context, List<CompileLib> list) {
+    public CompileEnvAdapter(Context context, List<Library> list) {
         mContext = context;
         mList = list;
     }
@@ -41,7 +40,7 @@ public class CompileEnvAdapter extends RecyclerView.Adapter<CompileEnvAdapter.Vi
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        final CompileLib lib = mList.get(position);
+        final Library lib = mList.get(position);
 
         holder.name.setText(lib.name);
         holder.enable.setChecked(lib.enable);

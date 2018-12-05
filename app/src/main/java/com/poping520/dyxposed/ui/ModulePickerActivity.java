@@ -22,7 +22,7 @@ import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModulePickerAdapter;
 import com.poping520.dyxposed.api.AnnotationProcessor;
 import com.poping520.dyxposed.framework.DyXCompiler;
-import com.poping520.dyxposed.framework.ModuleDBHelper;
+import com.poping520.dyxposed.framework.DyXDBHelper;
 import com.poping520.dyxposed.model.FileItem;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.model.Result;
@@ -74,7 +74,7 @@ public class ModulePickerActivity extends AppCompatActivity {
     private FloatingActionButton mFab;
     private boolean mFabState;
     private ModulePickerAdapter mAdapter;
-    private ModuleDBHelper mDBHelper;
+    private DyXDBHelper mDBHelper;
 
 
     private Handler mUiHandler = new Handler(Looper.getMainLooper()) {
@@ -107,7 +107,7 @@ public class ModulePickerActivity extends AppCompatActivity {
             supportActionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        mDBHelper = ModuleDBHelper.getInstance();
+        mDBHelper = DyXDBHelper.getInstance();
         mFab = findViewById(R.id.fab);
 
         initFAB();
@@ -171,7 +171,7 @@ public class ModulePickerActivity extends AppCompatActivity {
 
             // 添加到数据库
             final Module module = process.obj;
-            final Module last = mDBHelper.query(module.id);
+            final Module last = mDBHelper.queryModule(module.id);
             if (last == null) {
                 mUiHandler.post(() -> onInsertModule(module, dexPath));
             } else {
@@ -185,7 +185,7 @@ public class ModulePickerActivity extends AppCompatActivity {
     @UiThread
     private void onInsertModule(Module module, String dexPath) {
         try {
-            mDBHelper.insert(module, FileUtil.readBytes(dexPath, true));
+            mDBHelper.insertModule(module, FileUtil.readBytes(dexPath, true));
             final MDialog dialog = new MDialog.Builder(this)
                     .setHeaderBgColorRes(R.color.colorPrimary)
                     .setHeaderPic(R.drawable.ic_success_white_24dp)
@@ -210,7 +210,7 @@ public class ModulePickerActivity extends AppCompatActivity {
 
         if (force) {
             try {
-                mDBHelper.update(_new, FileUtil.readBytes(newDexPath, true));
+                mDBHelper.updateModule(_new, FileUtil.readBytes(newDexPath, true));
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -228,7 +228,7 @@ public class ModulePickerActivity extends AppCompatActivity {
                     .setTitle(R.string.dialog_title_upgrade_module)
                     .setPositiveButton(R.string.ok, (mDialog, mDialogAction) -> {
                         try {
-                            mDBHelper.update(_new, FileUtil.readBytes(newDexPath, true));
+                            mDBHelper.updateModule(_new, FileUtil.readBytes(newDexPath, true));
                         } catch (IOException e) {
                             e.printStackTrace();
                         } finally {

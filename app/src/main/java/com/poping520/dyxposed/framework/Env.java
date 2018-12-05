@@ -4,7 +4,7 @@ import android.os.Environment;
 import android.text.TextUtils;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
-import com.poping520.dyxposed.model.CompileLib;
+import com.poping520.dyxposed.model.Library;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.system.AndroidSystem;
 import com.poping520.dyxposed.system.Shell;
@@ -17,8 +17,6 @@ import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import dalvik.system.PathClassLoader;
 
@@ -79,25 +77,27 @@ public class Env {
      */
     public enum Assets {
 
+        API_ANDROID("api/api-android-28.jar", "F0A233AD65F0B1CC5CA461B404767658", Library.Scope.BOOT_RT),
+
         // /data/data/com.poping520.dyxposed/files/api/api-xposed-82.jar
-        API_XPOSED("api/api-xposed-82.jar", "87B9A136AE65B583E78B02F51C27D4A8"),
+        API_XPOSED("api/api-xposed-82.jar", "87B9A136AE65B583E78B02F51C27D4A8", Library.Scope.DYXPOSED_COMPILE_ONLY),
 
-        API_ANDROID("api/api-android-28.jar", "F0A233AD65F0B1CC5CA461B404767658"),
+        API_DYXPOSED("api/api-dyxposed-2.jar", "DCD0E4699CD28C9451D4DEEDF610F009", Library.Scope.DYXPOSED_COMPILE_ONLY),
 
-        API_DYXPOSED("api/api-dyxposed-2.jar", "DCD0E4699CD28C9451D4DEEDF610F009"),
-
-        LIB_XPOSED("lib/lib-xposed.jar", "956145163B20889A7D895020F197E813");
+        LIB_XPOSED("lib/lib-xposed.jar", "956145163B20889A7D895020F197E813", Library.Scope.DYXPOSED_RUNTIME);
 
         private String assetPath;
         private String md5;
+        private Library.Scope scope;
 
         /**
          * @param assetPath assets 路径
          * @param md5       文件 md5
          */
-        Assets(String assetPath, String md5) {
+        Assets(String assetPath, String md5, Library.Scope scope) {
             this.assetPath = assetPath;
             this.md5 = md5;
+            this.scope = scope;
         }
 
         /**
@@ -136,6 +136,10 @@ public class Env {
          */
         String getName() {
             return new File(COMPILE_ENV, assetPath).getName();
+        }
+
+        public Library.Scope getScope(){
+            return scope;
         }
     }
 
