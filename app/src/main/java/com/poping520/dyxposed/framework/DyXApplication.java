@@ -19,7 +19,7 @@ public class DyXApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        DyXContext.getInstance().init(this);
+        DyXContext.getInstance().onCreate(this);
 
         if (!BuildConfig.DEBUG) {
             CrashHandler.getInstance().init(this);

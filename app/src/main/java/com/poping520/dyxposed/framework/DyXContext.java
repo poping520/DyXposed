@@ -33,6 +33,8 @@ public class DyXContext {
 
     private static final String SPK_LAUNCH_TIMES = "LaunchTimes";
 
+    private static DyXSharedPrefs sAppSP;
+
     private final InnerHolder mHolder;
 
     private DyXContext() {
@@ -43,16 +45,22 @@ public class DyXContext {
         return InnerHolder.INSTANCE;
     }
 
-    void init(Application app) {
+    void onCreate(Application app) {
         mHolder.mApplicationContext = app.getApplicationContext();
+        sAppSP = getDyXSharedPrefs(BuildConfig.APPLICATION_ID);
     }
 
-    void init(BaseMainActivity act) {
+    void onCreate(BaseMainActivity act) {
         mHolder.mMainActivity = act;
 
         // 更新启动次数
         int lastTimes = get(SPK_LAUNCH_TIMES, 0);
-        save(SPK_LAUNCH_TIMES, ++lastTimes);
+        put(SPK_LAUNCH_TIMES, ++lastTimes);
+    }
+
+    void onDestroy() {
+        // 关闭数据库
+        DyXDBHelper.getInstance().release();
     }
 
     /**
@@ -101,9 +109,8 @@ public class DyXContext {
         return getApplicationContext().getString(resId, formatArgs);
     }
 
-    // 程序默认的 SharedPreferences
-    private static SharedPreferences getAppSharedPrefs() {
-        return getApplicationContext().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE);
+    public static DyXSharedPrefs getDyXSharedPrefs(String name) {
+        return DyXSharedPrefs.Cache.getDyXSharedPrefs(name);
     }
 
     /**
@@ -112,17 +119,9 @@ public class DyXContext {
      * @param key   key
      * @param value value
      */
-    public static <T> void save(String key, T value) {
-        final SharedPreferences.Editor edit = getAppSharedPrefs().edit();
-        if (value instanceof String)
-            edit.putString(key, (String) value);
-        else if (value instanceof Integer)
-            edit.putInt(key, (Integer) value);
-        else if (value instanceof Boolean)
-            edit.putBoolean(key, (Boolean) value);
-        else
-            throw new IllegalArgumentException("not implement");
-        edit.apply();
+    @Deprecated
+    public static <T> void put(String key, T value) {
+        sAppSP.put(key, value);
     }
 
     /**
@@ -132,18 +131,9 @@ public class DyXContext {
      * @param defaultValue default value
      * @return value
      */
-    @SuppressWarnings("unchecked")
+    @Deprecated
     public static <T> T get(String key, T defaultValue) {
-        Objects.requireNonNull(defaultValue, "must NonNull");
-        final SharedPreferences sp = getAppSharedPrefs();
-        if (defaultValue instanceof String)
-            return (T) sp.getString(key, (String) defaultValue);
-        else if (defaultValue instanceof Integer)
-            return (T) Integer.valueOf(sp.getInt(key, (Integer) defaultValue));
-        else if (defaultValue instanceof Boolean)
-            return (T) Boolean.valueOf(sp.getBoolean(key, (Boolean) defaultValue));
-        else
-            throw new IllegalArgumentException("not implement");
+        return sAppSP.get(key, defaultValue);
     }
 
     /**

@@ -69,4 +69,12 @@
     <string name="pref_key_compile_env">compile_env</string>
     <string name="pref_title_compile_env">Environment</string>
     <string name="pref_summary_compile_env">Configure compiler environment</string>
+
+    <string name="pref_key_use_root">use_root</string>
+    <string name="pref_title_use_root">using ROOT permission</string>
+    <string name="pref_summary_use_root">Functional enhancement</string>
+
+    <string name="pref_key_kill_target">kill_target</string>
+    <string name="pref_title_kill_target">立即生效</string>
+    <string name="pref_summary_kill_target">更新模块后杀死模块目标程序进程</string>
 </resources>

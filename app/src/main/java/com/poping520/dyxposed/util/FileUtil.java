@@ -188,7 +188,7 @@ public final class FileUtil {
     }
 
     /**
-     * 从 APK Assets 中释放文件
+     * 从 APK LibraryAssets 中释放文件
      *
      * @param context Context
      * @param asset   输入文件 Asset相对路径

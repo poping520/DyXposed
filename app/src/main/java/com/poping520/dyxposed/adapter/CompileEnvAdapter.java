@@ -42,7 +42,7 @@ public class CompileEnvAdapter extends RecyclerView.Adapter<CompileEnvAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         final Library lib = mList.get(position);
 
-        holder.name.setText(lib.name);
+        holder.name.setText(lib.getName());
         holder.enable.setChecked(lib.enable);
     }
 

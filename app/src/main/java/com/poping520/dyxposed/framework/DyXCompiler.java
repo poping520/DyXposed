@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.libdx.DxTool;
+import com.poping520.dyxposed.model.Library;
 import com.poping520.dyxposed.model.Result;
 import com.poping520.dyxposed.util.FileUtil;
 
@@ -61,16 +62,12 @@ public final class DyXCompiler {
         final StandardJavaFileManager fm =
                 javac.getStandardFileManager(collector, Locale.getDefault(), Charset.forName("UTF-8"));
 
-        fm.setBootClassJarPath(Env.Assets.API_ANDROID.release());
+        fm.setBootClassJarPath(LibraryAssets.API_ANDROID.release());
+        final DyXDBHelper dbHelper = DyXDBHelper.getInstance();
 
         try {
-            List<File> api = new ArrayList<>();
-            Collections.addAll(
-                    api,
-                    new File(Env.Assets.API_XPOSED.release()),
-                    new File(Env.Assets.API_DYXPOSED.release())
-            );
-            fm.setLocation(StandardLocation.CLASS_PATH, api);
+            fm.setLocation(StandardLocation.CLASS_PATH,
+                    dbHelper.queryEnableLibFiles(Library.Scope.DYXPOSED_COMPILE_ONLY, Library.Scope.USER_COMPILE_ONLY));
             fm.setLocation(StandardLocation.CLASS_OUTPUT, Collections.singletonList(classOutputDir));
 
             final Iterable<? extends JavaFileObject> compilationUnits =
@@ -124,11 +121,11 @@ public final class DyXCompiler {
     }
 
     /**
-     * 将 class 文件转为 dex
+     * 将 class 转为 dex
      *
      * @param inputPath  输入文件路径
      * @param outputPath 输出文件路径
-     * @return
+     * @return 是否成功
      */
     public static boolean dx(String inputPath, String outputPath) {
         final DxTool dxTool = new DxTool.Builder()

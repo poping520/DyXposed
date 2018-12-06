@@ -4,7 +4,6 @@ import android.os.Environment;
 import android.text.TextUtils;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
-import com.poping520.dyxposed.model.Library;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.system.AndroidSystem;
 import com.poping520.dyxposed.system.Shell;
@@ -65,83 +64,14 @@ public class Env {
             Environment.getExternalStorageDirectory().getAbsolutePath() + DYXPOSED_RELATIVE_DIR;
 
     // 编译环境目录
-    private static final String COMPILE_ENV = DyXContext.getFilesDir().getAbsolutePath();
+    static final String COMPILE_ENV = DyXContext.getFilesDir().getAbsolutePath();
 
-    private static final String DYXPOSED_LIB_RELATIVE_PATH = "lib/lib-dyxposed.jar";
+    private static final String LIB_DYXPOSED_RELATIVE_PATH = "lib/lib-dyxposed.jar";
 
     private static final String SPK_WORK_MODE = "WorkMode";
     private static final String SPK_DEVICE_ROOT = "DeviceRoot";
 
-    /**
-     * Assets 资源文件管理
-     */
-    public enum Assets {
-
-        API_ANDROID("api/api-android-28.jar", "F0A233AD65F0B1CC5CA461B404767658", Library.Scope.BOOT_RT),
-
-        // /data/data/com.poping520.dyxposed/files/api/api-xposed-82.jar
-        API_XPOSED("api/api-xposed-82.jar", "87B9A136AE65B583E78B02F51C27D4A8", Library.Scope.DYXPOSED_COMPILE_ONLY),
-
-        API_DYXPOSED("api/api-dyxposed-2.jar", "DCD0E4699CD28C9451D4DEEDF610F009", Library.Scope.DYXPOSED_COMPILE_ONLY),
-
-        LIB_XPOSED("lib/lib-xposed.jar", "956145163B20889A7D895020F197E813", Library.Scope.DYXPOSED_RUNTIME);
-
-        private String assetPath;
-        private String md5;
-        private Library.Scope scope;
-
-        /**
-         * @param assetPath assets 路径
-         * @param md5       文件 md5
-         */
-        Assets(String assetPath, String md5, Library.Scope scope) {
-            this.assetPath = assetPath;
-            this.md5 = md5;
-            this.scope = scope;
-        }
-
-        /**
-         * 释放 Assets 资源文件到 WORK DIR
-         *
-         * <p>
-         * save path = WORK DIR + assetPath
-         *
-         * @return 保存路径
-         */
-        String release() {
-            try {
-                return release(COMPILE_ENV);
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new DyXRuntimeException("...");
-            }
-        }
-
-        /**
-         * 释放 Assets 资源到指定文件夹下
-         *
-         * @param dir 指定的文件夹路径
-         * @return 输出文件绝对路径
-         */
-        public String release(String dir) throws IOException {
-            final File file = new File(dir, getName());
-            final String absPath = file.getAbsolutePath();
-            if (FileUtil.verifyMD5(file, md5)) return absPath;
-            FileUtil.unZipAsset(DyXContext.getApplicationContext(), assetPath, absPath, true);
-            return absPath;
-        }
-
-        /**
-         * @return 文件名
-         */
-        String getName() {
-            return new File(COMPILE_ENV, assetPath).getName();
-        }
-
-        public Library.Scope getScope(){
-            return scope;
-        }
-    }
+    private static final String SPK_USING_ROOT = "UsingRoot";
 
     private static class InnerHolder {
         private static final Env INSTANCE = new Env();
@@ -182,13 +112,19 @@ public class Env {
         void onRootStateChanged(boolean isRooted);
     }
 
+    public void setUsingRoot(boolean usingRoot) {
+        final Boolean last = DyXContext.get(SPK_USING_ROOT, false);
+        DyXContext.put(SPK_USING_ROOT, usingRoot);
+
+    }
+
     /**
      * 设置工作模式
      *
      * @param mode {@link #MODE_ROOT} or {@link #MODE_NORMAL}
      */
     public void setWorkMode(int mode) {
-        DyXContext.save(SPK_WORK_MODE, mode);
+        DyXContext.put(SPK_WORK_MODE, mode);
         mListener.onWorkModeConfigured(mode);
     }
 
@@ -218,7 +154,7 @@ public class Env {
      * @return 获取 DyXposed 模块的类加载器
      */
     public ClassLoader getDyXModuleClassLoader() {
-        return new PathClassLoader(Assets.LIB_XPOSED.release(), getClass().getClassLoader());
+        return new PathClassLoader(LibraryAssets.LIB_XPOSED.release(), getClass().getClassLoader());
     }
 
     /**
@@ -311,8 +247,14 @@ public class Env {
         releaseDyXLibIfNotExists();
     }
 
+    /**
+     * 将 {@link LibraryAssets#API_DYXPOSED} 转为 dex
+     * 载入模块时需要的运行依赖
+     *
+     * @throws DyXRuntimeException
+     */
     private void releaseDyXLibIfNotExists() throws DyXRuntimeException {
-        final File file = new File(Env.getInstance().getWorkDir(), DYXPOSED_LIB_RELATIVE_PATH);
+        final File file = new File(Env.getInstance().getWorkDir(), LIB_DYXPOSED_RELATIVE_PATH);
         final File parentDir = file.getParentFile();
         if (!parentDir.exists()) {
             FileUtil.mkDirIfNotExists(parentDir, true);
@@ -323,7 +265,7 @@ public class Env {
             return;
         }
 
-        if (DyXCompiler.dx(Assets.API_DYXPOSED.release(), absPath)) {
+        if (DyXCompiler.dx(LibraryAssets.API_DYXPOSED.release(), absPath)) {
             if (Env.getInstance().isRootWorkMode()) {
                 makeGlobal(parentDir.getAbsolutePath(), absPath);
             }

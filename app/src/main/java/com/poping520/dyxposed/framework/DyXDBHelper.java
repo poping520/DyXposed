@@ -5,11 +5,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.poping520.dyxposed.model.Library;
 import com.poping520.dyxposed.model.Module;
+import com.poping520.dyxposed.performance.Releasenable;
 import com.poping520.dyxposed.util.JSON;
+import com.poping520.dyxposed.util.Objects;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +27,7 @@ import java.util.Map;
  * @author poping520
  * @version 1.0.0
  */
-public class DyXDBHelper extends SQLiteOpenHelper {
+public class DyXDBHelper extends SQLiteOpenHelper implements Releasenable {
 
     private static final int VERSION = 1;
 
@@ -47,15 +51,13 @@ public class DyXDBHelper extends SQLiteOpenHelper {
         db.execSQL(sql);
 
         // library 表
-        sql = "create table if not exists library(id INTEGER primary key autoincrement, name TEXT, path TEXT, scope VARCHAR, enable INT2)";
+        // | id | scope | path | enable | assets |
+        sql = "create table if not exists library(id INTEGER primary key autoincrement, scope VARCHAR, path TEXT, enable INT2, assets VARCHAR)";
         db.execSQL(sql);
         // 向表增加默认的 lib
-        final Env.Assets[] assets = Env.Assets.values();
-        for (Env.Assets asset : assets) {
-            final String name = asset.getName();
-            if (name.contains("api")) {
-                insertLib(db, new Library(name, asset.release(), asset.getScope(), true));
-            }
+        final LibraryAssets[] assets = LibraryAssets.values();
+        for (LibraryAssets asset : assets) {
+            insertLib(db, asset.generateLibrary());
         }
     }
 
@@ -207,24 +209,78 @@ public class DyXDBHelper extends SQLiteOpenHelper {
         insertLib(getWritableDatabase(), lib);
     }
 
+
     private void insertLib(SQLiteDatabase db, Library lib) {
-        String sql = "insert into library(name, path, scope, enable) values(?, ?, ?, ?)";
-        db.execSQL(sql, new Object[]{lib.name, lib.path, lib.scope.name(), lib.enable});
+        String sql = "insert into library(scope, path, enable, assets) values(?, ?, ?, ?)";
+        String assets = "";
+        if (lib.assets != null) {
+            assets = lib.assets.name();
+        }
+        db.execSQL(sql, new Object[]{lib.scope.name(), lib.path, lib.enable, assets});
     }
 
     @NonNull
     public List<Library> queryAllLib() {
+        return queryLibs(Library.Scope.values());
+    }
+
+    public List<File> queryEnableLibFiles(Library.Scope... scopes) {
+        final List<Library> libs = queryLibs(scopes);
+        List<File> list = new ArrayList<>();
+        for (Library lib : libs) {
+            if (!lib.enable)
+                continue;
+
+            if (lib.isDyXLibrary()) {
+                lib.assets.release();
+            }
+            list.add(new File(lib.path));
+        }
+        return list;
+    }
+
+    /**
+     * @param scopes
+     * @return
+     */
+    public List<Library> queryLibs(Library.Scope... scopes) {
         final SQLiteDatabase db = getReadableDatabase();
         List<Library> list = new ArrayList<>();
-        final Cursor cursor = db.rawQuery("select * from library", null);
+
+        if (Objects.isEmptyArray(scopes)) {
+            return list;
+        }
+
+        // 查询全部
+        String sql = "select * from library";
+
+        // 查询部分
+        if (scopes.length < Library.Scope.values().length) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(sql).append(" where");
+            for (int i = 0; i < scopes.length; i++) {
+                sb.append(" scope like '").append(scopes[i].name()).append("'");
+                if (i < scopes.length - 1) {
+                    sb.append(" or");
+                }
+            }
+            sql = sb.toString();
+        }
+
+        final Cursor cursor = db.rawQuery(sql, null);
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                list.add(new Library(
-                        cursor.getString(1),
+                // |   id   |  scope |  path  | enable | assets |
+                final Library library = new Library(
+                        Library.Scope.valueOf(cursor.getString(1)),
                         cursor.getString(2),
-                        Library.Scope.valueOf(cursor.getString(3)),
-                        cursor.getInt(4) == 1
-                ));
+                        cursor.getInt(3) == 1
+                );
+                final String assets = cursor.getString(4);
+                if (!TextUtils.isEmpty(assets)) {
+                    library.assets = LibraryAssets.valueOf(assets);
+                }
+                list.add(library);
             }
             cursor.close();
         }
@@ -236,7 +292,10 @@ public class DyXDBHelper extends SQLiteOpenHelper {
 
     }
 
-    boolean isOpen() {
-        return getReadableDatabase().isOpen();
+    @Override
+    public void release() {
+        if (getReadableDatabase().isOpen()) {
+            close();
+        }
     }
 }

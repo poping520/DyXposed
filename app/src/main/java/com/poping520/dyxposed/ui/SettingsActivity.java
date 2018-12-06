@@ -3,6 +3,7 @@ package com.poping520.dyxposed.ui;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.support.v14.preference.SwitchPreference;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.preference.Preference;
@@ -15,12 +16,16 @@ import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.CompileEnvAdapter;
 import com.poping520.dyxposed.framework.DyXContext;
 import com.poping520.dyxposed.framework.DyXDBHelper;
+import com.poping520.dyxposed.framework.DyXSettings;
+import com.poping520.dyxposed.framework.Env;
 import com.poping520.dyxposed.model.Library;
 import com.poping520.open.mdialog.MDialog;
 
 import java.util.List;
 
 public class SettingsActivity extends AppCompatActivity {
+
+    private static final String TAG = "SettingsActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +50,23 @@ public class SettingsActivity extends AppCompatActivity {
             final Context context = getContext();
 
             final Preference prefCompileEnv = findPreference(R.string.pref_key_compile_env);
+            final SwitchPreference prefUseRoot = findPreference(R.string.pref_key_use_root);
+            final SwitchPreference prefKill = findPreference(R.string.pref_key_kill_target);
+
+            prefUseRoot.setOnPreferenceChangeListener((preference, newValue) -> {
+                boolean enable = (boolean) newValue;
+                DyXSettings.setUsingRoot(enable);
+                prefKill.setEnabled(enable);
+                if (!enable) {
+                    prefKill.setChecked(false);
+                }
+                return true;
+            });
+
+            prefKill.setOnPreferenceChangeListener((preference, newValue) -> {
+                DyXSettings.setKillTarget((boolean) newValue);
+                return true;
+            });
 
             prefCompileEnv.setOnPreferenceClickListener(preference -> {
 
@@ -66,8 +88,9 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
-        public Preference findPreference(@StringRes int stringResId) {
-            return super.findPreference(getString(stringResId));
+        @SuppressWarnings("unchecked")
+        public <T extends Preference> T findPreference(@StringRes int stringResId) {
+            return (T) super.findPreference(getString(stringResId));
         }
 
         @NonNull

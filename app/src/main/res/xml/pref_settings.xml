@@ -6,4 +6,15 @@
         android:summary="@string/pref_summary_compile_env"
         android:title="@string/pref_title_compile_env" />
 
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="@string/pref_key_use_root"
+        android:summary="@string/pref_summary_use_root"
+        android:title="@string/pref_title_use_root" />
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="@string/pref_key_kill_target"
+        android:summary="@string/pref_summary_kill_target"
+        android:title="@string/pref_title_kill_target" />
 </PreferenceScreen>

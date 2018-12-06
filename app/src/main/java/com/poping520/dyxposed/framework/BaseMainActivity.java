@@ -46,7 +46,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        DyXContext.getInstance().init(this);
+        DyXContext.getInstance().onCreate(this);
 
         mDBHelper = DyXDBHelper.getInstance();
         // xposed 状态异常
@@ -60,9 +60,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mDBHelper.isOpen()) {
-            mDBHelper.close();
-        }
+        DyXContext.getInstance().onDestroy();
     }
 
     private void handleXposedState() {

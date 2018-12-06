@@ -1,5 +1,9 @@
 package com.poping520.dyxposed.model;
 
+import com.poping520.dyxposed.framework.LibraryAssets;
+
+import java.io.File;
+
 /**
  * @author WangKZ
  * @version 1.0.0
@@ -7,35 +11,50 @@ package com.poping520.dyxposed.model;
  */
 public class Library {
 
-    public String name;
+    public Scope scope;
 
     public String path;
 
-    public Scope scope;
-
     public boolean enable;
 
-    public Library(String name, String path, Scope scope, boolean enable) {
-        this.name = name;
-        this.path = path;
+    public LibraryAssets assets;
+
+    public Library(Scope scope, String path, boolean enable) {
         this.scope = scope;
+        this.path = path;
         this.enable = enable;
     }
 
+    public boolean isDyXLibrary() {
+        return assets != null;
+    }
+
+    public String getName() {
+        return new File(path).getName();
+    }
+
+    /**
+     * Lib 库的编译方式
+     */
     public enum Scope {
 
         /**
          * BOOT CLASS
+         * <li>api-android-28.jar {@link LibraryAssets#API_ANDROID}</li>
          */
         BOOT_RT,
 
         /**
          * DyXposed 编译时依赖
+         * <li>api-xposed-82.jar {@link LibraryAssets#API_XPOSED}</li>
+         * <li>api-dyxposed-2.jar {@link LibraryAssets#API_DYXPOSED}</li>
          */
         DYXPOSED_COMPILE_ONLY,
 
         /**
          * DyXposed 运行时依赖
+         * <li>lib/lib-xposed.jar (dex) {@link LibraryAssets#LIB_XPOSED}</li>
+         * <li>lib-dyxposed.jar (dex)</li>
          */
         DYXPOSED_RUNTIME,
 
