@@ -1,16 +1,19 @@
 package com.poping520.dyxposed.util;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 
-import com.poping520.dyxposed.system.Shell;
+import com.poping520.dyxposed.os.Shell;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,13 +106,55 @@ public final class FileUtil {
     }
 
     /**
+     * 读取文本文件
+     *
+     * @param path 源文件路径
+     * @return 文本字符串
+     */
+    @Nullable
+    public static String readTextFile(String path) {
+        return readTextFile(new File(path));
+    }
+
+    /**
+     * 读取文本文件
+     *
+     * @param src 源文件
+     * @return 文本字符串
+     */
+    @Nullable
+    public static String readTextFile(File src) {
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(src));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            return sb.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * 文件转字节数组
      *
      * @param path   文件路径
      * @param delete 是否删除
      * @return byte 数组
      */
-    public static byte[] readBytes(String path, boolean delete) throws IOException {
+    public static byte[] readFileToBytes(String path, boolean delete) throws IOException {
         final File file = new File(path);
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

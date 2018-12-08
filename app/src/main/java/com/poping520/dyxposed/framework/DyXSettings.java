@@ -1,5 +1,9 @@
 package com.poping520.dyxposed.framework;
 
+import android.support.v7.preference.PreferenceDataStore;
+
+import com.poping520.dyxposed.R;
+
 /**
  * 程序设置
  *
@@ -7,30 +11,24 @@ package com.poping520.dyxposed.framework;
  * @version 1.0.0
  * create on 2018/12/6 15:08
  */
-public final class DyXSettings {
+public final class DyXSettings extends PreferenceDataStore {
 
-    private static final String SP_NAME = "dyxposed_settings";
+    public static final DyXSettings INSTANCE = new DyXSettings();
 
-    private static final String SPK_KILL_TARGET = "KillTarget";
+    private static final String SHARED_PREFERENCES_NAME = "dyxposed_settings";
 
-    private static final String SPK_USING_ROOT = "UsingRoot";
+    private static final DyXSharedPrefs SP = DyXContext.getDyXSharedPrefs(SHARED_PREFERENCES_NAME);
 
-    private static final DyXSharedPrefs SP = DyXContext.getDyXSharedPrefs(SP_NAME);
-
-
-    public static void setUsingRoot(boolean isUsingRoot) {
-        SP.put(SPK_USING_ROOT, isUsingRoot);
+    @Override
+    public void putBoolean(String key, boolean value) {
+        SP.put(key, value);
     }
 
     public static boolean isUsingRoot() {
-        return SP.get(SPK_USING_ROOT, false);
-    }
-
-    public static void setKillTarget(boolean isKillTarget) {
-        SP.put(SPK_KILL_TARGET, isKillTarget);
+        return SP.get(DyXContext.getStringFromRes(R.string.pref_key_use_root), false);
     }
 
     public static boolean isKillTarget() {
-        return SP.get(SPK_KILL_TARGET, false);
+        return SP.get(DyXContext.getStringFromRes(R.string.pref_key_kill_target), false);
     }
 }

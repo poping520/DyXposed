@@ -5,8 +5,8 @@ import android.text.TextUtils;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.model.Module;
-import com.poping520.dyxposed.system.AndroidSystem;
-import com.poping520.dyxposed.system.Shell;
+import com.poping520.dyxposed.os.AndroidOS;
+import com.poping520.dyxposed.os.Shell;
 import com.poping520.dyxposed.util.CryptoUtil;
 import com.poping520.dyxposed.util.FileUtil;
 import com.poping520.dyxposed.util.ModuleUtil;
@@ -92,7 +92,7 @@ public class Env {
         if (isWorkModeNotConfigure())
             return;
 
-        final boolean now = AndroidSystem.isRootedDevice();
+        final boolean now = AndroidOS.isRootedDevice();
         final boolean last = DyXContext.get(ROOT_RELATIVE_DIR, false);
 
         if (now != last)
@@ -319,7 +319,7 @@ public class Env {
         return Shell.exec(true, true,
                 chmod.toString(),
                 chown.toString(),
-                AndroidSystem.isNewApi_N()
+                AndroidOS.isNewApi_N()
                         ? chcon.toString()
                         : "\n"
         );

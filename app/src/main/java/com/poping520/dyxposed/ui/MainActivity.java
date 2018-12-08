@@ -12,6 +12,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,16 +23,16 @@ import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleAdapter;
 import com.poping520.dyxposed.framework.BaseMainActivity;
 import com.poping520.dyxposed.framework.Env;
-import com.poping520.dyxposed.framework.DyXDBHelper;
 import com.poping520.dyxposed.model.Module;
-import com.poping520.dyxposed.system.AndroidSystem;
-import com.poping520.dyxposed.system.Shell;
+import com.poping520.dyxposed.os.AndroidOS;
+import com.poping520.dyxposed.os.Shell;
 import com.poping520.dyxposed.util.Objects;
 import com.poping520.open.mdialog.MDialog;
 import com.poping520.open.mdialog.MDialogAction;
 
 import org.json.JSONException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -121,7 +122,7 @@ public class MainActivity extends BaseMainActivity {
                 final Button posBtn = mDialog.getPositiveButton();
                 final Button negBtn = mDialog.getNegativeButton();
 
-                if (AndroidSystem.isRootedDevice()) { // 设备已ROOT
+                if (AndroidOS.isRootedDevice()) { // 设备已ROOT
                     mDialog.setHTMLMessage(R.string.dialog_msg_work_mode_root);
 
                     posBtn.setText(R.string.work_mode_root);
@@ -264,11 +265,12 @@ public class MainActivity extends BaseMainActivity {
                     }
 
                     if (action == ModulePickerActivity.ACTION_INSERT_MODULE) {
+                        // 新增模块
                         mAdapter.insertItem(mDBHelper.queryModule(moduleId));
                     } else if (action == ModulePickerActivity.ACTION_UPDATE_MODULE) {
+                        // 更新模块
                         mAdapter.updateItem(moduleId);
                     }
-
                 }
                 break;
         }

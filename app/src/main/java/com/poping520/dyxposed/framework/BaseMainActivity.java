@@ -16,7 +16,7 @@ import android.widget.Button;
 
 import com.poping520.dyxposed.BuildConfig;
 import com.poping520.dyxposed.R;
-import com.poping520.dyxposed.system.AndroidSystem;
+import com.poping520.dyxposed.os.AndroidOS;
 import com.poping520.open.mdialog.MDialog;
 
 import java.util.ArrayList;
@@ -73,12 +73,12 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
 
         // xposed 状态正常 但未激活模块
         final Button posBtn = mDialog.getPositiveButton();
-        if (AndroidSystem.isXposedFrameworkInstalled()
-                && AndroidSystem.isXposedManagerInstalled()) {
+        if (AndroidOS.isXposedFrameworkInstalled()
+                && AndroidOS.isXposedManagerInstalled()) {
             mDialog.setMessage(R.string.dialog_msg_xposed_module_not_active);
             posBtn.setText(R.string.enable_module);
             posBtn.setOnClickListener(v -> {
-                AndroidSystem.jump2XposedManager();
+                AndroidOS.jump2XposedManager();
             });
         } else {
             mDialog.setMessage(R.string.dialog_msg_xposed_not_install);
@@ -91,7 +91,7 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
 
     // 检查必须权限
     private void checkPermission() {
-        if (AndroidSystem.API_LEVEL < Build.VERSION_CODES.M) {
+        if (AndroidOS.API_LEVEL < Build.VERSION_CODES.M) {
             onCheckPermissionResult(true);
             return;
         }

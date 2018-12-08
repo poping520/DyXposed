@@ -3,11 +3,9 @@ package com.poping520.dyxposed.framework;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.support.annotation.StringRes;
 
 import com.poping520.dyxposed.BuildConfig;
-import com.poping520.dyxposed.util.Objects;
 
 import java.io.File;
 
@@ -16,7 +14,7 @@ import java.io.File;
  * @version 1.0.0
  * create on 2018/11/9 10:16
  */
-public class DyXContext {
+public final class DyXContext {
 
     private static class InnerHolder {
         private static final DyXContext INSTANCE = new DyXContext();
@@ -29,6 +27,9 @@ public class DyXContext {
      */
     public static final String APPLICATION_NAME = "DyXposed";
 
+    /**
+     * 程序数据库名称
+     */
     public static final String APP_DB_NAME = DyXContext.APPLICATION_NAME + ".db";
 
     private static final String SPK_LAUNCH_TIMES = "LaunchTimes";
@@ -41,7 +42,7 @@ public class DyXContext {
         mHolder = new InnerHolder();
     }
 
-    public static DyXContext getInstance() {
+    static DyXContext getInstance() {
         return InnerHolder.INSTANCE;
     }
 

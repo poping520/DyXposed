@@ -1,7 +1,7 @@
 package com.poping520.dyxposed.util;
 
 import com.poping520.dyxposed.model.Module;
-import com.poping520.dyxposed.system.AndroidSystem;
+import com.poping520.dyxposed.os.AndroidOS;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,7 +34,7 @@ public class ModuleUtil {
             String name = null;
 
             for (Map.Entry<String, String> entry : entries) {
-                if (AndroidSystem.getCurrentLanguage().equals(entry.getKey())) {
+                if (AndroidOS.getCurrentLanguage().equals(entry.getKey())) {
                     name = entry.getValue();
                     break;
                 }
@@ -56,7 +56,7 @@ public class ModuleUtil {
             final Set<Map.Entry<String, String>> entries = desc.entrySet();
 
             for (Map.Entry<String, String> entry : entries) {
-                if (AndroidSystem.getCurrentLanguage().equals(entry.getKey())) {
+                if (AndroidOS.getCurrentLanguage().equals(entry.getKey())) {
                     str = entry.getValue();
                     break;
                 }

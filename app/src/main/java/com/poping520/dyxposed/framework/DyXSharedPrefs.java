@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.ArrayMap;
 
-import com.poping520.dyxposed.system.AndroidSystem;
+import com.poping520.dyxposed.os.AndroidOS;
 import com.poping520.dyxposed.util.Objects;
 
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class DyXSharedPrefs {
         private static final Map<String, DyXSharedPrefs> CACHED_MAP;
 
         static {
-            if (AndroidSystem.API_LEVEL >= Build.VERSION_CODES.KITKAT)
+            if (AndroidOS.API_LEVEL >= Build.VERSION_CODES.KITKAT)
                 CACHED_MAP = new ArrayMap<>();
             else
                 CACHED_MAP = new HashMap<>();

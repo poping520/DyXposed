@@ -1,23 +1,30 @@
-package com.poping520.dyxposed.system;
+package com.poping520.dyxposed.os;
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.util.Log;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.framework.DyXContext;
 
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
 
 /**
+ * Android OS
+ * <p>
+ * 封装 Android 操作系统的相关方法
+ * 本类没有实例对象, 全部采用静态调用
+ *
  * @author WangKZ
  * @version 1.0.0
  * create on 2018/11/9 10:08
  */
-public class AndroidSystem {
+public final class AndroidOS {
 
     /**
      * 当前系统 SDK_INT
@@ -25,6 +32,11 @@ public class AndroidSystem {
     public static final int API_LEVEL = Build.VERSION.SDK_INT;
 
     public static final String XPOSED_INSTALLER_PACKAGE_NAME = "de.robv.android.xposed.installer";
+
+    // 不可创建类对象
+    private AndroidOS() {
+
+    }
 
     /**
      * @return 当前设备的系统是否 ROOT
@@ -108,6 +120,24 @@ public class AndroidSystem {
             e.printStackTrace();
             // TODO
             throw new DyXRuntimeException();
+        }
+    }
+
+    // 懒加载 单例模式
+    private static ProcessManager sProcessManager;
+
+    public static ProcessManager getProcessManager() {
+        if (sProcessManager == null) {
+            sProcessManager = new ProcessManager();
+        }
+        return sProcessManager;
+    }
+
+    public static void killProcess(String packageName) {
+        final List<ProcessInfo> processes = getProcessManager().getProcessInfos();
+
+        for (ProcessInfo process : processes) {
+            Log.e("==>", "killProcess: " + process);
         }
     }
 

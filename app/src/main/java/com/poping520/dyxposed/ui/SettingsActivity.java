@@ -7,9 +7,11 @@ import android.support.v14.preference.SwitchPreference;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.preference.Preference;
+import android.support.v7.preference.PreferenceDataStore;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.ViewGroup;
 
 import com.poping520.dyxposed.R;
@@ -41,30 +43,30 @@ public class SettingsActivity extends AppCompatActivity {
     public static class SettingsPreferenceFragment extends PreferenceFragmentCompat {
 
         private DyXDBHelper mDBHelper;
+        private SwitchPreference mPrefUseRoot;
+        private SwitchPreference mPrefKill;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+            getPreferenceManager().setPreferenceDataStore(DyXSettings.INSTANCE);
             addPreferencesFromResource(R.xml.pref_settings);
 
             mDBHelper = DyXDBHelper.getInstance();
             final Context context = getContext();
 
             final Preference prefCompileEnv = findPreference(R.string.pref_key_compile_env);
-            final SwitchPreference prefUseRoot = findPreference(R.string.pref_key_use_root);
-            final SwitchPreference prefKill = findPreference(R.string.pref_key_kill_target);
+            mPrefUseRoot = findPreference(R.string.pref_key_use_root);
+            mPrefKill = findPreference(R.string.pref_key_kill_target);
 
-            prefUseRoot.setOnPreferenceChangeListener((preference, newValue) -> {
-                boolean enable = (boolean) newValue;
-                DyXSettings.setUsingRoot(enable);
-                prefKill.setEnabled(enable);
-                if (!enable) {
-                    prefKill.setChecked(false);
-                }
+            handlePrefKillState(mPrefUseRoot.isChecked());
+
+            mPrefUseRoot.setOnPreferenceChangeListener((preference, newValue) -> {
+                boolean checked = (boolean) newValue;
+                handlePrefKillState(checked);
                 return true;
             });
 
-            prefKill.setOnPreferenceChangeListener((preference, newValue) -> {
-                DyXSettings.setKillTarget((boolean) newValue);
+            mPrefKill.setOnPreferenceChangeListener((preference, newValue) -> {
                 return true;
             });
 
@@ -86,6 +88,15 @@ public class SettingsActivity extends AppCompatActivity {
                         .show();
                 return false;
             });
+        }
+
+        private void handlePrefKillState(boolean isPrefUseRootChecked) {
+            if (isPrefUseRootChecked) {
+                mPrefKill.setEnabled(true);
+            } else {
+                mPrefKill.setChecked(false);
+                mPrefKill.setEnabled(false);
+            }
         }
 
         @SuppressWarnings("unchecked")

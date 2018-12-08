@@ -185,7 +185,7 @@ public class ModulePickerActivity extends AppCompatActivity {
     @UiThread
     private void onInsertModule(Module module, String dexPath) {
         try {
-            mDBHelper.insertModule(module, FileUtil.readBytes(dexPath, true));
+            mDBHelper.insertModule(module, FileUtil.readFileToBytes(dexPath, true));
             final MDialog dialog = new MDialog.Builder(this)
                     .setHeaderBgColorRes(R.color.colorPrimary)
                     .setHeaderPic(R.drawable.ic_success_white_24dp)
@@ -210,7 +210,7 @@ public class ModulePickerActivity extends AppCompatActivity {
 
         if (force) {
             try {
-                mDBHelper.updateModule(_new, FileUtil.readBytes(newDexPath, true));
+                mDBHelper.updateModule(_new, FileUtil.readFileToBytes(newDexPath, true));
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -228,7 +228,7 @@ public class ModulePickerActivity extends AppCompatActivity {
                     .setTitle(R.string.dialog_title_upgrade_module)
                     .setPositiveButton(R.string.ok, (mDialog, mDialogAction) -> {
                         try {
-                            mDBHelper.updateModule(_new, FileUtil.readBytes(newDexPath, true));
+                            mDBHelper.updateModule(_new, FileUtil.readFileToBytes(newDexPath, true));
                         } catch (IOException e) {
                             e.printStackTrace();
                         } finally {
