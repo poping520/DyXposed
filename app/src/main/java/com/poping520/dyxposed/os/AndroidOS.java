@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.framework.DyXContext;
+import com.poping520.dyxposed.util.FileUtil;
 
 import java.io.File;
 import java.util.List;
@@ -133,12 +134,22 @@ public final class AndroidOS {
         return sProcessManager;
     }
 
-    public static void killProcess(String packageName) {
-        final List<ProcessInfo> processes = getProcessManager().getProcessInfos();
+    public static void forceStopApp(String packageName) {
+        String cmd = "am force-stop " + packageName;
+        Shell.exec(true, false, cmd);
+    }
 
-        for (ProcessInfo process : processes) {
-            Log.e("==>", "killProcess: " + process);
-        }
+    /**
+     * @return 获取当前调用本方法的进程名
+     */
+    public static String getCurrentProcessName() {
+        final File file = new File("/proc/self/cmdline");
+        String processName = FileUtil.readTextFile(file);
+        if (processName == null) processName = "";
+        return processName;
+    }
+
+    public static void killProcess(String packageName) {
     }
 
     /**

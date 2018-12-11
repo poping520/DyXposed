@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Process;
 import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -21,6 +22,8 @@ import android.widget.TextView;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleAdapter;
+import com.poping520.dyxposed.forcestop.TargetSerializer;
+import com.poping520.dyxposed.forcestop.Targets;
 import com.poping520.dyxposed.framework.BaseMainActivity;
 import com.poping520.dyxposed.framework.Env;
 import com.poping520.dyxposed.model.Module;
@@ -35,6 +38,7 @@ import org.json.JSONException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.poping520.dyxposed.util.ModuleUtil.*;
@@ -98,6 +102,20 @@ public class MainActivity extends BaseMainActivity {
 
         initFAB();
         initRecyclerView();
+
+        // Shell.exec(true,true,"mount -o ro,remount /");
+        final Targets targets = TargetSerializer.deserialize(new File("/data/data/com.poping520.dyxposed/shared/module/e39d2c7de19156b0683cd93e8735f348.targets"));
+        final Set<String> keySet = targets.targetMap.keySet();
+
+        for (String s : keySet) {
+
+            Log.e(TAG, "onCreate: " + s);
+            final Targets.Target target = targets.targetMap.get(s);
+            final Set<String> keySet1 = target.pidMap.keySet();
+            for (String s1 : keySet1) {
+                Log.e(TAG, "processName= " + s1 + "; pid = " + target.pidMap.get(s1));
+            }
+        }
     }
 
     private void initFAB() {

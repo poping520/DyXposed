@@ -1,6 +1,12 @@
 package com.poping520.dyxposed;
 
 import android.annotation.SuppressLint;
+import android.os.Process;
+
+import com.poping520.dyxposed.forcestop.TargetSerializer;
+import com.poping520.dyxposed.forcestop.Targets;
+import com.poping520.dyxposed.os.AndroidOS;
+import com.poping520.dyxposed.os.Shell;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -57,10 +63,12 @@ public class XposedEntry implements IXposedHookLoadPackage {
     }
 
     private void onProxy(File jsonFile, XC_LoadPackage.LoadPackageParam lpparam) {
-        final String dexName =
-                jsonFile.getName().replaceAll(".json", "") + ".jar";
+        final File moduleDir = jsonFile.getParentFile();
+        final String moduleBaseName = jsonFile.getName().replaceAll(".json", "");
+        // 模块 jar 文件
+        final String dexName = moduleBaseName + ".jar";
 
-        final File dexFile = new File(jsonFile.getParentFile(), dexName);
+        final File dexFile = new File(moduleDir, dexName);
         if (!dexFile.exists() || !dexFile.canRead()) {
             return;
         }
@@ -73,6 +81,49 @@ public class XposedEntry implements IXposedHookLoadPackage {
 
             if (target.isEmpty() || target.contains(lpparam.packageName)) {
                 execProxy(dexFile.getAbsolutePath(), entryClass, entryMethod, lpparam);
+
+                if (target.isEmpty()) {
+                    return;
+                }
+
+                /* TEST ONLY */
+                final String targetsName = moduleBaseName + ".targets";
+                final File targetsFile = new File(moduleDir, targetsName);
+
+                Targets targets;
+                if (targetsFile.exists()) {
+                    targets = TargetSerializer.deserialize(targetsFile);
+                } else {
+                    targets = new Targets();
+                }
+
+                if (targets != null) {
+                    final Targets.Target t = targets.targetMap.get(lpparam.packageName);
+
+                    final String currentProcessName = AndroidOS.getCurrentProcessName();
+                    if (t == null) {
+                        final Targets.Target tmp = new Targets.Target();
+                        tmp.pidMap.put(currentProcessName, Process.myPid());
+                        targets.targetMap.put(lpparam.packageName, tmp);
+                    } else {
+                        t.pidMap.remove(currentProcessName);
+                        t.pidMap.put(currentProcessName, Process.myPid());
+                    }
+
+                    TargetSerializer.serialize(targetsFile, targets);
+
+                    String cmd1 = "chmod 777 " + targetsFile.getAbsolutePath();
+                    String cmd2 = "chown 9997:9997 " + targetsFile.getAbsolutePath();
+
+                    try {
+                        Runtime.getRuntime().exec(new String[]{cmd1, cmd2});
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                /* TEST ONLY */
+
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -81,6 +132,7 @@ public class XposedEntry implements IXposedHookLoadPackage {
         }
     }
 
+    /* 执行模块 Xposed 入口方法 */
     private void execProxy(String dexPath, String entryClass,
                            String entryMethod, XC_LoadPackage.LoadPackageParam lpparam) {
 
