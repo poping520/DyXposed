@@ -83,7 +83,8 @@ public final class DyXCompiler {
                 final List<Diagnostic<? extends JavaFileObject>> diagnostics = collector.getDiagnostics();
                 StringBuilder sb = new StringBuilder();
                 for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics) {
-                    sb.append(String.format("Error on line %s in %s%n", diagnostic.getLineNumber(), diagnostic.getSource().toUri()));
+                    // TODO: 2019/1/21  
+                    sb.append(String.format("Error on line %s in %s%n", diagnostic.getLineNumber(), diagnostic.getSource()));
                 }
                 sb.append("\n").append(sw.toString());
                 result.errMsg = sb.toString();

@@ -60,5 +60,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.poping520.dyxposed.ui.MainActivity" />
         </activity>
+        <activity
+            android:name=".ui.LoggerActivity"
+            android:label="@string/action_log"
+            android:parentActivityName=".ui.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.poping520.dyxposed.ui.MainActivity" />
+        </activity>
     </application>
+
 </manifest>

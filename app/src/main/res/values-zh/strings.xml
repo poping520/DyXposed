@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">DyXposed</string>
     <string name="action_settings">设置</string>
+    <string name="action_log">日志</string>
     <string name="go_on">继续</string>
     <string name="exit_app">退出程序</string>
     <string name="warning">警告</string>
@@ -40,6 +41,7 @@
     <string name="folder_is_empty">该目录内容为空</string>
 
     <string name="module_field_id">模块标识</string>
+    <string name="module_field_name">模块名称</string>
     <string name="module_field_entry_class">模块入口类</string>
     <string name="module_field_entry_method">模块入口方法</string>
 

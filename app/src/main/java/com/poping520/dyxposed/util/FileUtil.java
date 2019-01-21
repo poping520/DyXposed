@@ -17,6 +17,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author WangKZ
@@ -103,6 +105,36 @@ public final class FileUtil {
             bos.close();
             return true;
         }
+    }
+
+
+    /**
+     * 读取文本文件 每行为一个条目
+     *
+     * @param src
+     * @return 字符串集合
+     */
+    public static List<String> readTextFileToList(File src) {
+        final List<String> list = new ArrayList<>();
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(src));
+            String line;
+            while ((line = br.readLine()) != null) {
+                list.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return list;
     }
 
     /**

@@ -1,11 +1,11 @@
 package com.poping520.dyxposed.ui;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.Process;
 import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -13,7 +13,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,8 +21,6 @@ import android.widget.TextView;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleAdapter;
-import com.poping520.dyxposed.forcestop.TargetSerializer;
-import com.poping520.dyxposed.forcestop.Targets;
 import com.poping520.dyxposed.framework.BaseMainActivity;
 import com.poping520.dyxposed.framework.Env;
 import com.poping520.dyxposed.model.Module;
@@ -35,10 +32,8 @@ import com.poping520.open.mdialog.MDialogAction;
 
 import org.json.JSONException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.poping520.dyxposed.util.ModuleUtil.*;
@@ -102,20 +97,6 @@ public class MainActivity extends BaseMainActivity {
 
         initFAB();
         initRecyclerView();
-
-        // Shell.exec(true,true,"mount -o ro,remount /");
-        final Targets targets = TargetSerializer.deserialize(new File("/data/data/com.poping520.dyxposed/shared/module/e39d2c7de19156b0683cd93e8735f348.targets"));
-        final Set<String> keySet = targets.targetMap.keySet();
-
-        for (String s : keySet) {
-
-            Log.e(TAG, "onCreate: " + s);
-            final Targets.Target target = targets.targetMap.get(s);
-            final Set<String> keySet1 = target.pidMap.keySet();
-            for (String s1 : keySet1) {
-                Log.e(TAG, "processName= " + s1 + "; pid = " + target.pidMap.get(s1));
-            }
-        }
     }
 
     private void initFAB() {
@@ -222,7 +203,7 @@ public class MainActivity extends BaseMainActivity {
                         e.printStackTrace();
                     }
                 } else {
-                    mEnv.closeModule(moduleId);
+                    mEnv.closeModule(module);
                 }
             }
 
@@ -302,13 +283,19 @@ public class MainActivity extends BaseMainActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        final int id = item.getItemId();
-        switch (id) {
+        switch (item.getItemId()) {
             case R.id.action_settings:
-                startActivity(new Intent(this, SettingsActivity.class));
+                jumpActivity(SettingsActivity.class);
+                break;
+            case R.id.action_log:
+                jumpActivity(LoggerActivity.class);
                 break;
         }
         return true;
+    }
+
+    private void jumpActivity(Class<? extends Activity> activityClz) {
+        startActivity(new Intent(this, activityClz));
     }
 
     @Override

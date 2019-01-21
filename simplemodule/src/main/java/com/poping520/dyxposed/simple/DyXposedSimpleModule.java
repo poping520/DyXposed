@@ -3,6 +3,7 @@ package com.poping520.dyxposed.simple;
 import android.text.TextUtils;
 
 import com.poping520.dyxposed.api.*;
+import com.poping520.dyxposed.log.DyXLog;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -18,11 +19,8 @@ import static de.robv.android.xposed.XposedHelpers.*;
  * @version 1.0.0
  * create on 2018/11/20 14:11
  */
-@DyXEntryClass
+@DyXEntryClass(id = "com.dyxposed.module")
 public class DyXposedSimpleModule {
-
-    @DyXModuleID
-    String id = "Simple Module";
 
     @DyXModuleName
     Map<String, String> name = new HashMap<>();
@@ -30,21 +28,17 @@ public class DyXposedSimpleModule {
     @DyXModuleDesc
     Map<String, String> desc = new HashMap<>();
 
-    @DyXModuleVer
-    String ver = "1.0.0";
-
     @DyXTargetApp
     String[] target = {};
 
     DyXposedSimpleModule() {
+        DyXLog.e("SimpleModule","new DyXposedSimpleModule");
         name.put(Locale.CHINESE.getLanguage(), "FFF团");
         desc.put(Locale.CHINESE.getLanguage(), "没有描述");
     }
 
     @DyXEntryMethod
     void onHook(XC_LoadPackage.LoadPackageParam param) {
-
-
 
         final Class<?> clz = findClass("android.widget.TextView", param.classLoader);
         findAndHookMethod(clz, "setText", CharSequence.class, new XC_MethodHook() {

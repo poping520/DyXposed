@@ -32,11 +32,8 @@ public final class AnnotationProcessor {
 
     @SuppressWarnings("unchecked")
     private static final Class<? extends Annotation>[] API_ANNOTATION_CLASSES = new Class[]{
-            DyXModuleID.class,
-            DyXModuleAuthor.class,
             DyXModuleName.class,
             DyXModuleDesc.class,
-            DyXModuleVer.class,
             DyXTargetApp.class,
     };
 
@@ -110,6 +107,10 @@ public final class AnnotationProcessor {
         }
         // 代理/入口类确认
 
+        final DyXEntryClass anno = entryClz.getAnnotation(DyXEntryClass.class);
+        moduleClzObj.id = anno.id();
+        moduleClzObj.version = anno.version();
+        moduleClzObj.author = anno.author();
 
         // 代理/入口方法确认
         final Method entryMethod = findEntryMethod(entryClz);

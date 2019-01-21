@@ -33,7 +33,7 @@ public class Module {
      * 模块名称
      * 转成 JSONObject 字符串保存
      */
-    @Nullable
+    @MustNonEmpty(R.string.module_field_name)
     public Map<String, String> name;
 
     /**

@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.text.TextUtils;
 
 import com.poping520.dyxposed.exception.DyXRuntimeException;
+import com.poping520.dyxposed.log.DyXLog;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.os.AndroidOS;
 import com.poping520.dyxposed.os.Shell;
@@ -223,8 +224,10 @@ public class Env {
      * @param dexBytes
      */
     public void openModule(Module module, byte[] dexBytes) throws DyXRuntimeException, JSONException, IOException {
-        if (dexBytes == null || dexBytes.length == 0)
+        if (Objects.isEmptyArray(dexBytes))
             throw new DyXRuntimeException();
+
+        DyXLog.i("open module => " + ModuleUtil.getFullName(module));
 
         String name = CryptoUtil.getStringMD5(module.id);
         if (TextUtils.isEmpty(name))
@@ -277,11 +280,13 @@ public class Env {
     /**
      * UI接口 关闭模块
      *
-     * @param moduleId
+     * @param module
      * @throws DyXRuntimeException
      */
-    public void closeModule(String moduleId) throws DyXRuntimeException {
-        String name = CryptoUtil.getStringMD5(moduleId);
+    public void closeModule(Module module) throws DyXRuntimeException {
+        DyXLog.i("close module => " + ModuleUtil.getFullName(module));
+
+        String name = CryptoUtil.getStringMD5(module.id);
         if (TextUtils.isEmpty(name))
             throw new DyXRuntimeException();
 

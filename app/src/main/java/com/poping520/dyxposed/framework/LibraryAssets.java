@@ -21,7 +21,7 @@ public enum LibraryAssets {
     // /data/data/com.poping520.dyxposed/files/api/api-xposed-82.jar
     API_XPOSED("api/api-xposed-82.jar", Library.Scope.DYXPOSED_COMPILE_ONLY),
 
-    API_DYXPOSED("api/api-dyxposed-2.jar", Library.Scope.DYXPOSED_COMPILE_ONLY),
+    API_DYXPOSED("api/api-dyxposed-3.jar", Library.Scope.DYXPOSED_COMPILE_ONLY),
 
     LIB_XPOSED("lib/lib-xposed.jar", Library.Scope.DYXPOSED_RUNTIME);
 

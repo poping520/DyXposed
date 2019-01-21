@@ -209,7 +209,6 @@ public class DyXDBHelper extends SQLiteOpenHelper implements Releasenable {
         insertLib(getWritableDatabase(), lib);
     }
 
-
     private void insertLib(SQLiteDatabase db, Library lib) {
         String sql = "insert into library(scope, path, enable, assets) values(?, ?, ?, ?)";
         String assets = "";

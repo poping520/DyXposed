@@ -19,10 +19,19 @@ import java.util.Set;
 public class ModuleUtil {
 
     /**
+     * 模块名称(模块id)
+     *
+     * @param module 模块对象
+     */
+    public static String getFullName(Module module) {
+        return String.format("%s(%s)", getShowName(module), module.id);
+    }
+
+    /**
      * 从 {@link Module#name} 中获取模块名称
      * <p>
      * 若 {@link Module#name} 为空映射或者匹配不到当前系统的语言,
-     * 则返回 {@link Module#id}
+     * 则返回 name 中的首个元素
      */
     public static String getShowName(Module module) {
         final Map<String, String> map = module.name;
@@ -32,14 +41,18 @@ public class ModuleUtil {
         else {
             final Set<Map.Entry<String, String>> entries = map.entrySet();
             String name = null;
+            // 备用名称
+            String spareName = null;
 
             for (Map.Entry<String, String> entry : entries) {
+                final String value = entry.getValue();
+                spareName = value;
                 if (AndroidOS.getCurrentLanguage().equals(entry.getKey())) {
-                    name = entry.getValue();
+                    name = value;
                     break;
                 }
             }
-            return name == null ? module.id : name;
+            return name == null ? spareName : name;
         }
     }
 
@@ -64,7 +77,6 @@ public class ModuleUtil {
         }
         return str;
     }
-
 
     public static String toJSONString(Module module) throws JSONException {
         final JSONObject jObj = new JSONObject();

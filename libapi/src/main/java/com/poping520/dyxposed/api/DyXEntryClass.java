@@ -16,4 +16,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface DyXEntryClass {
+
+    String id();
+
+    String author() default "";
+
+    String version() default "1.0.0";
 }

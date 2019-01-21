@@ -11,8 +11,6 @@ import com.poping520.dyxposed.debug.CrashHandler;
  * @author poping520
  * @version 1.0.0
  */
-
-
 public class DyXApplication extends Application {
 
     @Override

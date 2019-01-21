@@ -23,6 +23,10 @@ public class Objects {
         return obj;
     }
 
+    public static boolean isEmptyArray(byte[] arr) {
+        return arr == null || arr.length == 0;
+    }
+
     public static <T> boolean isEmptyArray(T[] arr) {
         return arr == null || arr.length == 0;
     }
