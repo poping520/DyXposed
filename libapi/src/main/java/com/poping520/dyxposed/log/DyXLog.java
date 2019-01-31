@@ -66,6 +66,6 @@ public class DyXLog {
     }
 
     private static String getCurrentTime() {
-        return new SimpleDateFormat("yyyy-dd-MM hh:mm:ss.SSS", Locale.getDefault()).format(new Date());
+        return new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS", Locale.getDefault()).format(new Date());
     }
 }

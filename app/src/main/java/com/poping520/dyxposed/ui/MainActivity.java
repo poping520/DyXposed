@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.poping520.dyxposed.util.ModuleUtil.*;
+import static com.poping520.dyxposed.framework.ModuleHelper.*;
 
 
 public class MainActivity extends BaseMainActivity {

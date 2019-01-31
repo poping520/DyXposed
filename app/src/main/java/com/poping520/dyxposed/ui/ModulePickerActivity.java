@@ -28,7 +28,7 @@ import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.model.Result;
 import com.poping520.dyxposed.util.DimenUtil;
 import com.poping520.dyxposed.util.FileUtil;
-import com.poping520.dyxposed.util.ModuleUtil;
+import com.poping520.dyxposed.framework.ModuleHelper;
 import com.poping520.open.mdialog.MDialog;
 
 import java.io.IOException;
@@ -190,7 +190,7 @@ public class ModulePickerActivity extends AppCompatActivity {
                     .setHeaderBgColorRes(R.color.colorPrimary)
                     .setHeaderPic(R.drawable.ic_success_white_24dp)
                     .setTitle(R.string.success)
-                    .setHTMLMessage(R.string.dialog_msg_module_add_succ, ModuleUtil.getShowName(module))
+                    .setHTMLMessage(R.string.dialog_msg_module_add_succ, ModuleHelper.getShowName(module))
                     .setPositiveButton(R.string.ok, (mDialog, mDialogAction) -> {
                         onResult(module.id, ACTION_INSERT_MODULE);
                     })
@@ -220,7 +220,7 @@ public class ModulePickerActivity extends AppCompatActivity {
         } else {
             String newVer = _new.version;
             String oldVer = _old.version;
-            String showName = ModuleUtil.getShowName(_new);
+            String showName = ModuleHelper.getShowName(_new);
 
             final MDialog.Builder builder = new MDialog.Builder(this)
                     .setHeaderBgColorRes(R.color.colorPrimary)

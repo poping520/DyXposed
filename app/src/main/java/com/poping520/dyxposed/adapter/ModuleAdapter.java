@@ -15,11 +15,9 @@ import android.widget.TextView;
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.util.DimenUtil;
-import com.poping520.dyxposed.util.ModuleUtil;
+import com.poping520.dyxposed.framework.ModuleHelper;
 import com.poping520.dyxposed.util.Objects;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -59,8 +57,8 @@ public class ModuleAdapter extends RecyclerView.Adapter<ModuleAdapter.ViewHolder
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
         final Module module = mList.get(position);
 
-        holder.mName.setText(ModuleUtil.getShowName(module));
-        holder.mDesc.setText(ModuleUtil.getShowDesc(module));
+        holder.mName.setText(ModuleHelper.getShowName(module));
+        holder.mDesc.setText(ModuleHelper.getShowDesc(module));
         holder.mVersion.setText(module.version);
         holder.mSwitch.setChecked(module.enable);
         holder.mSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {

@@ -1,7 +1,10 @@
-package com.poping520.dyxposed.util;
+package com.poping520.dyxposed.framework;
+
+import android.text.TextUtils;
 
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.os.AndroidOS;
+import com.poping520.dyxposed.util.CryptoUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,7 +19,20 @@ import java.util.Set;
  * @author poping520
  * @version 1.0.0
  */
-public class ModuleUtil {
+public class ModuleHelper {
+
+    /**
+     * 获取模块释放文件的名称
+     *
+     * @param module 模块对象
+     */
+    public static String getReleaseFileName(Module module) {
+        String fileName = CryptoUtil.getStringMD5(module.id);
+        if (TextUtils.isEmpty(fileName)) {
+            fileName = module.id;
+        }
+        return fileName;
+    }
 
     /**
      * 模块名称(模块id)
@@ -78,6 +94,12 @@ public class ModuleUtil {
         return str;
     }
 
+    /**
+     * Module 对象转 JSON 字符串
+     *
+     * @param module 模块对象
+     * @throws JSONException
+     */
     public static String toJSONString(Module module) throws JSONException {
         final JSONObject jObj = new JSONObject();
         final JSONArray jArr = new JSONArray();

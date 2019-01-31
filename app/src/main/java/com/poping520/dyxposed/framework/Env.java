@@ -10,7 +10,6 @@ import com.poping520.dyxposed.os.AndroidOS;
 import com.poping520.dyxposed.os.Shell;
 import com.poping520.dyxposed.util.CryptoUtil;
 import com.poping520.dyxposed.util.FileUtil;
-import com.poping520.dyxposed.util.ModuleUtil;
 import com.poping520.dyxposed.util.Objects;
 
 import org.json.JSONException;
@@ -227,14 +226,11 @@ public class Env {
         if (Objects.isEmptyArray(dexBytes))
             throw new DyXRuntimeException();
 
-        DyXLog.i("open module => " + ModuleUtil.getFullName(module));
+        DyXLog.i("open module => " + ModuleHelper.getFullName(module));
 
-        String name = CryptoUtil.getStringMD5(module.id);
-        if (TextUtils.isEmpty(name))
-            throw new DyXRuntimeException();
+        String name = ModuleHelper.getReleaseFileName(module);
 
-        final String jsonStr = ModuleUtil.toJSONString(module);
-
+        final String jsonStr = ModuleHelper.toJSONString(module);
         final String format = getModuleDir() + File.separator + name + ".%s";
         String jsonPath = String.format(format, "json");
         String jarPath = String.format(format, "jar");
@@ -284,12 +280,9 @@ public class Env {
      * @throws DyXRuntimeException
      */
     public void closeModule(Module module) throws DyXRuntimeException {
-        DyXLog.i("close module => " + ModuleUtil.getFullName(module));
+        DyXLog.i("close module => " + ModuleHelper.getFullName(module));
 
-        String name = CryptoUtil.getStringMD5(module.id);
-        if (TextUtils.isEmpty(name))
-            throw new DyXRuntimeException();
-
+        String name = ModuleHelper.getReleaseFileName(module);
         final File[] files = getModuleDir().listFiles(
                 pathname -> pathname.getName().startsWith(name));
 
