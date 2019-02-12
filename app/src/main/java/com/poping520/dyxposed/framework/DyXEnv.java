@@ -20,41 +20,40 @@ import java.io.IOException;
 import dalvik.system.PathClassLoader;
 
 /**
- * WORK DIR     /data/data/package_name/files
- * API DIR      WORK DIR/api
- * CLASS DIR    WORK DIR/class
- * <p>
- * ROOT
- * - DEX DIR  /data/DyXposed/module
- * <p>
- * NORMAL
- * - DEX DIR  /sdcard/DyXposed/module
+ * /data/data/com.poping520.dyxposed/shared
  *
  * @author WangKZ
  * @version 1.0.0
  * create on 2018/11/9 9:55
  */
-public class Env {
+public class DyXEnv {
 
     /**
      * ROOT工作模式
      */
+    @Deprecated
     public static final int MODE_ROOT = 0x1;
 
     /**
      * 普通工作模式
      */
+    @Deprecated
     public static final int MODE_NORMAL = 0x2;
 
     /**
      * 未确定工作模式
      */
+    @Deprecated
     public static final int MODE_NOT_CONFIGURE = 0x0;
 
 
     private static final String DYXPOSED_RELATIVE_DIR = "/DyXposed";
 
+    @Deprecated
     private static final String ROOT_RELATIVE_DIR = "shared";
+
+    /* /data/data/com.poping520.dyxposed/shared */
+    private static final String WORK_RELATIVE_DIR = "shared";
 
     private static final String MODULE_RELATIVE_DIR = "module";
 
@@ -74,14 +73,14 @@ public class Env {
     private static final String SPK_USING_ROOT = "UsingRoot";
 
     private static class InnerHolder {
-        private static final Env INSTANCE = new Env();
+        private static final DyXEnv INSTANCE = new DyXEnv();
     }
 
-    public static Env getInstance() {
+    public static DyXEnv getInstance() {
         return InnerHolder.INSTANCE;
     }
 
-    private Env() {
+    private DyXEnv() {
     }
 
     private EnvStateListener mListener;
@@ -92,7 +91,7 @@ public class Env {
         if (isWorkModeNotConfigure())
             return;
 
-        final boolean now = AndroidOS.isRootedDevice();
+        final boolean now = AndroidOS.isDeviceRooted();
         final boolean last = DyXContext.get(ROOT_RELATIVE_DIR, false);
 
         if (now != last)
@@ -111,6 +110,47 @@ public class Env {
          */
         void onRootStateChanged(boolean isRooted);
     }
+
+    private static final int DYXPOSED_ENV_OK = 0;
+
+    private static final int MAKE_APP_DATA_DIR_X_ERROR = -1;
+
+    private static final int MAKE_WORK_DIR_GLOBAL_ERROR = -2;
+
+    /**
+     * 初始化环境
+     * 701 rwx-----x
+     */
+    int initDyXEnv() {
+        final File workDir = new File(DyXContext.getAppDataDir(), WORK_RELATIVE_DIR);
+
+        /* 工作目录不存在 */
+        if (!workDir.exists()) {
+            if (mkAppDataDirX()) {
+                DyXLog.i("make app data dir permission ('rwx-----x') successful");
+            } else {
+                DyXLog.e("make app data dir permission failed");
+                return MAKE_APP_DATA_DIR_X_ERROR;
+            }
+
+            FileUtil.mkDirIfNotExists(workDir, true);
+
+            if (makeFileGlobal(workDir.getAbsolutePath())) {
+                DyXLog.i("make work dir global successful");
+            } else {
+                DyXLog.e("make work dir global failed");
+                return MAKE_WORK_DIR_GLOBAL_ERROR;
+            }
+        }
+        return DYXPOSED_ENV_OK;
+    }
+
+    /* 修改shared文件夹权限为701 */
+    private boolean mkAppDataDirX() {
+        String cmd = "chmod 701 " + DyXContext.getAppDataDir().getAbsolutePath();
+        return Shell.exec(false, false, cmd).success;
+    }
+
 
     public void setUsingRoot(boolean usingRoot) {
         final Boolean last = DyXContext.get(SPK_USING_ROOT, false);
@@ -180,7 +220,7 @@ public class Env {
     }
 
     /**
-     * NORMAL => /{$ExternalStorageDir}/Dyxposed
+     * NORMAL => /{$ExternalStorageDir}/DyXposed
      * ROOT   => /{$AppDataDir}/shared
      */
     private File getWorkDir() {
@@ -191,7 +231,7 @@ public class Env {
                 Shell.exec(true, true,
                         "chmod 701 " + appDataDir.getAbsolutePath());
                 FileUtil.mkDirIfNotExists(file, true);
-                makeGlobal(file.getAbsolutePath());
+                makeFileGlobal(file.getAbsolutePath());
             }
             return file;
         } else {
@@ -208,7 +248,7 @@ public class Env {
         if (isRootWorkMode()) {
             if (!file.exists()) {
                 FileUtil.mkDirIfNotExists(file, true);
-                makeGlobal(file.getAbsolutePath());
+                makeFileGlobal(file.getAbsolutePath());
             }
         } else {
             FileUtil.mkDirIfNotExists(file, true);
@@ -240,7 +280,7 @@ public class Env {
 
         // 设置权限
         if (isRootWorkMode()) {
-            makeGlobal(jsonPath, jarPath);
+            makeFileGlobal(jsonPath, jarPath);
         }
 
         releaseDyXLibIfNotExists();
@@ -253,7 +293,7 @@ public class Env {
      * @throws DyXRuntimeException
      */
     private void releaseDyXLibIfNotExists() throws DyXRuntimeException {
-        final File file = new File(Env.getInstance().getWorkDir(), LIB_DYXPOSED_RELATIVE_PATH);
+        final File file = new File(DyXEnv.getInstance().getWorkDir(), LIB_DYXPOSED_RELATIVE_PATH);
         final File parentDir = file.getParentFile();
         if (!parentDir.exists()) {
             FileUtil.mkDirIfNotExists(parentDir, true);
@@ -265,8 +305,8 @@ public class Env {
         }
 
         if (DyXCompiler.dx(LibraryAssets.API_DYXPOSED.release(), absPath)) {
-            if (Env.getInstance().isRootWorkMode()) {
-                makeGlobal(parentDir.getAbsolutePath(), absPath);
+            if (DyXEnv.getInstance().isRootWorkMode()) {
+                makeFileGlobal(parentDir.getAbsolutePath(), absPath);
             }
         } else {
             throw new DyXRuntimeException("");
@@ -294,18 +334,20 @@ public class Env {
     }
 
     /**
-     * 将文件/夹 改为任何 uid 可读可执行
+     * 将文件/夹 改为任何用户 可读可写可执行
      *
-     * @param paths
-     * @return
+     * @param paths 目标路径
+     * @return success
      */
-    private static Shell.Result makeGlobal(String... paths) {
+    private static boolean makeFileGlobal(String... paths) {
+        if (Objects.isEmptyArray(paths)) return false;
 
         StringBuilder chmod = new StringBuilder();
         StringBuilder chown = new StringBuilder();
         StringBuilder chcon = new StringBuilder();
 
         chmod.append("chmod 777");
+        /* 9997 - everybody 需要 root 权限*/
         chown.append("chown 9997:9997");
         chcon.append("chcon u:object_r:media_rw_data_file:s0");
         for (String path : paths) {
@@ -314,12 +356,11 @@ public class Env {
             chcon.append(" ").append(path);
         }
 
-        return Shell.exec(true, true,
+        Shell.Result ret = Shell.exec(true, false,
                 chmod.toString(),
                 chown.toString(),
-                AndroidOS.isNewApi_N()
-                        ? chcon.toString()
-                        : "\n"
+                AndroidOS.isApiLevelUp_N() ? chcon.toString() : "\n"
         );
+        return ret.success;
     }
 }

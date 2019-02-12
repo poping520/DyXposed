@@ -67,9 +67,7 @@ public class ModulePickerAdapter extends RecyclerView.Adapter<ModulePickerAdapte
 
         m20dp = DimenUtil.dp2px(mActivity, 20f);
 
-        mList = getFileItemList(
-                new File(Environment.getExternalStorageDirectory(), "DyXposed")
-        );
+        mList = getFileItemList(Environment.getExternalStorageDirectory());
         mStack = new LinkedList<>();
         // 第一个元素压栈
         mStack.push(mList);

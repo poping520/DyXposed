@@ -3,11 +3,16 @@ package com.poping520.dyxposed.framework;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
 
 import com.poping520.dyxposed.BuildConfig;
+import com.poping520.dyxposed.R;
+import com.poping520.dyxposed.util.Objects;
+import com.poping520.open.mdialog.MDialog;
 
 import java.io.File;
+import java.util.Map;
 
 /**
  * @author WangKZ
@@ -17,9 +22,14 @@ import java.io.File;
 public final class DyXContext {
 
     private static class InnerHolder {
+
         private static final DyXContext INSTANCE = new DyXContext();
-        private Context mApplicationContext;
-        private Activity mMainActivity;
+
+        /* 全局 Context (Application Context) 对象 */
+        private Context applicationContext;
+
+        /* 当前 Activity */
+        private Activity currentActivity;
     }
 
     /**
@@ -27,19 +37,17 @@ public final class DyXContext {
      */
     public static final String APPLICATION_NAME = "DyXposed";
 
-    /**
-     * 程序数据库名称
-     */
-    public static final String APP_DB_NAME = DyXContext.APPLICATION_NAME + ".db";
-
     private static final String SPK_LAUNCH_TIMES = "LaunchTimes";
 
     private static DyXSharedPrefs sAppSP;
 
     private final InnerHolder mHolder;
 
+    private final Map<Integer, Activity> mActMap;
+
     private DyXContext() {
         mHolder = new InnerHolder();
+        mActMap = Objects.obtainEmptyMap();
     }
 
     static DyXContext getInstance() {
@@ -47,16 +55,23 @@ public final class DyXContext {
     }
 
     void onCreate(Application app) {
-        mHolder.mApplicationContext = app.getApplicationContext();
+        mHolder.applicationContext = app.getApplicationContext();
         sAppSP = getDyXSharedPrefs(BuildConfig.APPLICATION_ID);
-    }
-
-    void onCreate(BaseMainActivity act) {
-        mHolder.mMainActivity = act;
 
         // 更新启动次数
-        int lastTimes = get(SPK_LAUNCH_TIMES, 0);
-        put(SPK_LAUNCH_TIMES, ++lastTimes);
+        int lastTimes = sAppSP.get(SPK_LAUNCH_TIMES, 0);
+        sAppSP.put(SPK_LAUNCH_TIMES, ++lastTimes);
+    }
+
+    void onCreate(Activity act) {
+        Objects.requireNonNull(act, "activity object is NULL");
+        mHolder.currentActivity = act;
+        mActMap.put(act.hashCode(), act);
+    }
+
+    void onDestroy(Activity act) {
+        Objects.requireNonNull(act, "activity object is NULL");
+        mActMap.remove(act.hashCode());
     }
 
     void onDestroy() {
@@ -68,15 +83,37 @@ public final class DyXContext {
      * @return 全局 Context (Application Context) 对象
      */
     public static Context getApplicationContext() {
-        final Context context = getInstance().mHolder.mApplicationContext;
+        final Context context = getInstance().mHolder.applicationContext;
         if (context == null)
             throw new IllegalStateException("...");
 
         return context;
     }
 
+    public static Activity getCurrentActivity() {
+        final Activity activity = getInstance().mHolder.currentActivity;
+        if (activity == null)
+            throw new IllegalStateException("...");
+
+        return activity;
+    }
+
+    public static void safeExitApp() {
+        final Map<Integer, Activity> actMap = getInstance().mActMap;
+        for (Map.Entry<Integer, Activity> entry : actMap.entrySet()) {
+            entry.getValue().finish();
+        }
+    }
+
+    public static MDialog.Builder mkBaseMDialog(@DrawableRes int headerPic, @StringRes int title) {
+        return new MDialog.Builder(getCurrentActivity())
+                .setHeaderBgColorRes(R.color.colorPrimary)
+                .setHeaderPic(headerPic)
+                .setTitle(title);
+    }
+
     /**
-     * @return 程序私有数据目录
+     * @return 本程序私有数据目录
      */
     public static File getAppDataDir() {
         return getCacheDir().getParentFile();
@@ -141,6 +178,6 @@ public final class DyXContext {
      * @return 程序是否首次启动
      */
     static boolean isLaunchFirstTime() {
-        return get(SPK_LAUNCH_TIMES, 0) == 0;
+        return sAppSP.get(SPK_LAUNCH_TIMES, 0) == 0;
     }
 }

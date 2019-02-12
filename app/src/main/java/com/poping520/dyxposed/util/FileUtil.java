@@ -27,6 +27,8 @@ import java.util.List;
  */
 public final class FileUtil {
 
+    private static int BYTE_ARRAY_BUFFER_SIZE = 100 * 1024;
+
     /**
      * 解压 zip 文件
      *
@@ -191,7 +193,7 @@ public final class FileUtil {
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        byte[] buf = new byte[100 * 1024];
+        byte[] buf = new byte[BYTE_ARRAY_BUFFER_SIZE];
         int len;
         while ((len = bis.read(buf)) != -1) {
             baos.write(buf, 0, len);
@@ -233,12 +235,15 @@ public final class FileUtil {
         return remove(file.getAbsolutePath());
     }
 
+    /**
+     * @see #mkDirIfNotExists(String, boolean)
+     */
     public static boolean mkDirIfNotExists(File dir, boolean force) {
         return mkDirIfNotExists(dir.getAbsolutePath(), force);
     }
 
     /**
-     * 创建文件夹 如果不存在
+     * 创建文件夹 (如果此文件夹不存在)
      *
      * @param path  绝对路径
      * @param force 存在同名文件，是否覆盖
@@ -295,7 +300,7 @@ public final class FileUtil {
         final InputStream is = context.getAssets().open(asset);
         final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(dst));
 
-        byte[] buf = new byte[100 * 1024];
+        byte[] buf = new byte[BYTE_ARRAY_BUFFER_SIZE];
         int len;
         while ((len = is.read(buf)) != -1) {
             bos.write(buf, 0, len);

@@ -1,19 +1,19 @@
 package com.poping520.dyxposed.ui;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.DyXLogAdapter;
+import com.poping520.dyxposed.framework.BaseActivity;
 import com.poping520.dyxposed.util.FileUtil;
 
 import java.io.File;
 import java.util.List;
 
-public class LoggerActivity extends AppCompatActivity {
+public class LoggerActivity extends BaseActivity {
 
     private static final String TAG = "LoggerActivity";
 

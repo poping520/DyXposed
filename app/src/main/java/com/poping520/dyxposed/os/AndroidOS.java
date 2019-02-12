@@ -5,8 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Process;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.framework.DyXContext;
 import com.poping520.dyxposed.util.FileUtil;
@@ -42,7 +45,7 @@ public final class AndroidOS {
     /**
      * @return 当前设备的系统是否 ROOT
      */
-    public static boolean isRootedDevice() {
+    public static boolean isDeviceRooted() {
         return isSUBinaryExists() || isMagiskInstalled();
     }
 
@@ -95,9 +98,9 @@ public final class AndroidOS {
     }
 
     /**
-     * 检测是否安装 Xposed 管理器
+     * 检测是否安装 Xposed Installer
      */
-    public static boolean isXposedManagerInstalled() {
+    public static boolean isXposedInstallerInstalled() {
         final PackageManager pm = DyXContext.getApplicationContext().getPackageManager();
         try {
             pm.getPackageInfo(XPOSED_INSTALLER_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
@@ -108,19 +111,25 @@ public final class AndroidOS {
         return false;
     }
 
-    public static void jump2XposedManager() {
+    /**
+     * 跳转到 Xposed Installer
+     */
+    public static void jump2XposedInstaller() {
+        final Context context = DyXContext.getApplicationContext();
+
+        if (!isXposedInstallerInstalled()) {
+            Toast.makeText(context, R.string.xposed_installer_not_installed, Toast.LENGTH_SHORT).show();
+            return;
+        }
         try {
-            final Context context = DyXContext.getApplicationContext();
             ComponentName cn = new ComponentName(XPOSED_INSTALLER_PACKAGE_NAME,
                     XPOSED_INSTALLER_PACKAGE_NAME + ".WelcomeActivity");
             final Intent intent = new Intent();
             intent.setComponent(cn);
             context.startActivity(intent);
-
         } catch (Exception e) {
             e.printStackTrace();
-            // TODO
-            throw new DyXRuntimeException();
+            Toast.makeText(context, R.string.jump_xposed_installer_error, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -153,13 +162,21 @@ public final class AndroidOS {
     }
 
     /**
+     * 杀死本程序进程
+     */
+    public static void killSelf() {
+        DyXContext.safeExitApp();
+        Process.killProcess(Process.myPid());
+    }
+
+    /**
      * @return 当前系统语言
      */
     public static String getCurrentLanguage() {
         return Locale.getDefault().getLanguage();
     }
 
-    public static boolean isNewApi_N() {
+    public static boolean isApiLevelUp_N() {
         return API_LEVEL >= Build.VERSION_CODES.N;
     }
 }

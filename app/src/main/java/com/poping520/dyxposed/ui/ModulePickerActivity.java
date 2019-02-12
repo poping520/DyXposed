@@ -10,7 +10,6 @@ import android.support.annotation.StringRes;
 import android.support.annotation.UiThread;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,6 +20,7 @@ import android.view.animation.DecelerateInterpolator;
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModulePickerAdapter;
 import com.poping520.dyxposed.api.AnnotationProcessor;
+import com.poping520.dyxposed.framework.BaseActivity;
 import com.poping520.dyxposed.framework.DyXCompiler;
 import com.poping520.dyxposed.framework.DyXDBHelper;
 import com.poping520.dyxposed.model.FileItem;
@@ -38,7 +38,7 @@ import static android.animation.ObjectAnimator.ofFloat;
 /**
  * 选择模块导入
  */
-public class ModulePickerActivity extends AppCompatActivity {
+public class ModulePickerActivity extends BaseActivity {
 
     /**
      * 选择的文件/夹

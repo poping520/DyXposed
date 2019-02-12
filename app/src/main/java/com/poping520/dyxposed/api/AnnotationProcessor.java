@@ -7,7 +7,7 @@ import android.text.TextUtils;
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.annotation.MustNonEmpty;
 import com.poping520.dyxposed.framework.DyXContext;
-import com.poping520.dyxposed.framework.Env;
+import com.poping520.dyxposed.framework.DyXEnv;
 import com.poping520.dyxposed.model.Result;
 import com.poping520.dyxposed.model.Module;
 
@@ -188,7 +188,7 @@ public final class AnnotationProcessor {
             final DexFile dexFile = new DexFile(dexPath);
             final Enumeration<String> entries = dexFile.entries();
 
-            final ClassLoader moduleClassLoader = Env.getInstance().getDyXModuleClassLoader();
+            final ClassLoader moduleClassLoader = DyXEnv.getInstance().getDyXModuleClassLoader();
             while (entries.hasMoreElements()) {
                 final Class clz = dexFile.loadClass(
                         entries.nextElement(),

@@ -54,7 +54,7 @@ public final class DyXCompiler {
             return result;
         }
 
-        final File classOutputDir = new File(Env.getClassOutputDir());
+        final File classOutputDir = new File(DyXEnv.getClassOutputDir());
 
         final JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
         DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
@@ -92,8 +92,8 @@ public final class DyXCompiler {
             }
 
             // dx start
-            final String dexOutputPath = Env.getDexOutputPath();
-            ret = dx(Env.getClassOutputDir(), dexOutputPath);
+            final String dexOutputPath = DyXEnv.getDexOutputPath();
+            ret = dx(DyXEnv.getClassOutputDir(), dexOutputPath);
 
             if (!ret) {
                 //TODO

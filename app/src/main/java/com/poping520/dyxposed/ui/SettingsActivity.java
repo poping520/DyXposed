@@ -4,28 +4,25 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v14.preference.SwitchPreference;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.preference.Preference;
-import android.support.v7.preference.PreferenceDataStore;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.ViewGroup;
 
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.CompileEnvAdapter;
+import com.poping520.dyxposed.framework.BaseActivity;
 import com.poping520.dyxposed.framework.DyXContext;
 import com.poping520.dyxposed.framework.DyXDBHelper;
 import com.poping520.dyxposed.framework.DyXSettings;
-import com.poping520.dyxposed.framework.Env;
 import com.poping520.dyxposed.model.Library;
 import com.poping520.open.mdialog.MDialog;
 
 import java.util.List;
 
-public class SettingsActivity extends AppCompatActivity {
+public class SettingsActivity extends BaseActivity {
 
     private static final String TAG = "SettingsActivity";
 

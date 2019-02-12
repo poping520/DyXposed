@@ -22,7 +22,8 @@ import android.widget.TextView;
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.adapter.ModuleAdapter;
 import com.poping520.dyxposed.framework.BaseMainActivity;
-import com.poping520.dyxposed.framework.Env;
+import com.poping520.dyxposed.framework.DyXContext;
+import com.poping520.dyxposed.framework.DyXEnv;
 import com.poping520.dyxposed.model.Module;
 import com.poping520.dyxposed.os.AndroidOS;
 import com.poping520.dyxposed.os.Shell;
@@ -50,7 +51,7 @@ public class MainActivity extends BaseMainActivity {
 
     private FloatingActionButton mFAB;
     private TextView mTvHint;
-    private Env mEnv;
+    private DyXEnv mEnv;
     private ModuleAdapter mAdapter;
 
     /* 所有模块对象 */
@@ -65,10 +66,10 @@ public class MainActivity extends BaseMainActivity {
                 case MSG_EXEC_SU:
                     if ((boolean) msg.obj) {
 
-                        mEnv.setWorkMode(Env.MODE_ROOT);
+                        mEnv.setWorkMode(DyXEnv.MODE_ROOT);
                     } else {
                         snackBar(R.string.device_not_root);
-                        mEnv.setWorkMode(Env.MODE_NORMAL);
+                        mEnv.setWorkMode(DyXEnv.MODE_NORMAL);
                     }
 
                     break;
@@ -84,7 +85,7 @@ public class MainActivity extends BaseMainActivity {
         setSupportActionBar(toolbar);
 
         mAllModule = mDBHelper.queryAllModule();
-        mEnv = Env.getInstance();
+        mEnv = DyXEnv.getInstance();
 
         mTvHint = findViewById(R.id.tv_hint);
         if (mEnv.isWorkModeNotConfigure()) {
@@ -102,7 +103,7 @@ public class MainActivity extends BaseMainActivity {
     private void initFAB() {
         mFAB = findViewById(R.id.fab);
 
-        final Env env = Env.getInstance();
+        final DyXEnv env = DyXEnv.getInstance();
 
         if (env.isWorkModeNotConfigure()) {
             mFAB.setImageResource(R.drawable.ic_build_white_24dp);
@@ -121,7 +122,7 @@ public class MainActivity extends BaseMainActivity {
                 final Button posBtn = mDialog.getPositiveButton();
                 final Button negBtn = mDialog.getNegativeButton();
 
-                if (AndroidOS.isRootedDevice()) { // 设备已ROOT
+                if (AndroidOS.isDeviceRooted()) { // 设备已ROOT
                     mDialog.setHTMLMessage(R.string.dialog_msg_work_mode_root);
 
                     posBtn.setText(R.string.work_mode_root);
@@ -130,7 +131,7 @@ public class MainActivity extends BaseMainActivity {
                     mDialog.setOnClickListener((dialog, mDialogAction) -> {
                         env.setWorkMode(
                                 mDialogAction == MDialogAction.NEGATIVE
-                                        ? Env.MODE_NORMAL : Env.MODE_ROOT
+                                        ? DyXEnv.MODE_NORMAL : DyXEnv.MODE_ROOT
                         );
                         mFAB.setImageResource(R.drawable.ic_add_white_24dp);
                     });
@@ -144,7 +145,7 @@ public class MainActivity extends BaseMainActivity {
                     mDialog.setOnClickListener((dialog, mDialogAction) -> {
                         switch (mDialogAction) {
                             case POSITIVE:
-                                env.setWorkMode(Env.MODE_NORMAL);
+                                env.setWorkMode(DyXEnv.MODE_NORMAL);
                                 break;
 
                             case NEGATIVE: //执行 su 命令
@@ -289,6 +290,9 @@ public class MainActivity extends BaseMainActivity {
                 break;
             case R.id.action_log:
                 jumpActivity(LoggerActivity.class);
+                break;
+            case R.id.action_exit:
+                DyXContext.safeExitApp();
                 break;
         }
         return true;

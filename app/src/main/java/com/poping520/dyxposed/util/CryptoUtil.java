@@ -86,7 +86,6 @@ public final class CryptoUtil {
         return md.digest();
     }
 
-    private static final char HEX_DIGITS[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     /**
      * byte 数组转 16 进制字符串
@@ -95,6 +94,8 @@ public final class CryptoUtil {
         if (bytes == null) return null;
         int len = bytes.length;
         if (len <= 0) return null;
+
+        final char HEX_DIGITS[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
         char[] ret = new char[len << 1];
         for (int i = 0, j = 0; i < len; i++) {
             ret[j++] = HEX_DIGITS[bytes[i] >>> 4 & 0x0f];

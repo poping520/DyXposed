@@ -4,6 +4,7 @@
     <string name="action_settings">Settings</string>
     <string name="action_log">Log</string>
     <string name="go_on">continue</string>
+    <string name="exit">exit</string>
     <string name="exit_app">exit app</string>
     <string name="warning">warning</string>
     <string name="ok">OK</string>
@@ -14,21 +15,28 @@
 
     <string name="delete_module">Delete Module</string>
 
-    <string name="dialog_msg_xposed_module_not_active"></string>
+    <string name="xposed_installer_not_installed">Xposed Installer is not installed</string>
+    <string name="jump_xposed_installer_error">can\'t launch Xposed Installer</string>
+    <string name="dialog_msg_xposed_module_not_active">you haven\'t enabled DyXposed in Xposed Installer, if you are sure you have enabled it, please restart device</string>
+    <string name="dmsg_xposed_framework_not_installed">Xposed Framework is not installed on your device, Dyxposed can\'t work normally</string>
     <string name="enable_module">enable module</string>
-    <string name="dialog_msg_xposed_not_install"></string>
 
     <string name="retry_request_permission">retry</string>
     <string name="permission_dialog_title">remind</string>
     <string name="dialog_msg_request_permission"></string>
-    <string name="dialog_msg_refuse_permission"></string>
-    <string name="toast_permission_granted"></string>
+    <string name="dmsg_refuse_permission"></string>
+    <string name="toast_permission_granted">Required permissions have been granted</string>
+
+    <string name="dtitle_check_root">ROOT</string>
+    <string name="dmsg_has_root">DyXposed 需要 ROOT 权限才能正常工作</string>
+    <string name="device_root_already">ROOT ALREADY</string>
+
+
     <string name="dialog_title_select_work_mode"></string>
     <string name="hint_add_module">Please Import Module</string>
     <string name="hint_config_work_mode">Please Configure Work Mode</string>
     <string name="work_mode_root">ROOT MODE</string>
     <string name="work_mode_normal">NORMAL MODE</string>
-    <string name="device_root_already">ROOT ALREADY</string>
     <string name="device_not_root">you device has no root</string>
     <string name="dialog_msg_work_mode_root">
 

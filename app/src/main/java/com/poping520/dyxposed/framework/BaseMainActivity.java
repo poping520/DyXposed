@@ -4,13 +4,11 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Process;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
@@ -27,7 +25,7 @@ import java.util.List;
  * @version 1.0.0
  * create on 2018/11/8 17:20
  */
-public abstract class BaseMainActivity extends AppCompatActivity implements Env.EnvStateListener {
+public abstract class BaseMainActivity extends BaseActivity implements DyXEnv.EnvStateListener {
 
     private static final String[] MUST_PERMISSIONS = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -46,15 +44,15 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        DyXContext.getInstance().onCreate(this);
-
         mDBHelper = DyXDBHelper.getInstance();
-        // xposed 状态异常
+
         if (waitHook() && !BuildConfig.DEBUG) {
+            /* xposed 状态异常 */
             handleXposedState();
-        } else {
-            checkPermission();
+            return;
         }
+
+        startCheck();
     }
 
     @Override
@@ -63,25 +61,39 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
         DyXContext.getInstance().onDestroy();
     }
 
+    private void startCheck() {
+
+        if (!AndroidOS.isDeviceRooted()) {
+            DyXContext
+                    .mkBaseMDialog(R.drawable.ic_build_white_24dp, R.string.dtitle_check_root)
+                    .setMessage(R.string.dmsg_has_root)
+                    .setPositiveButton(R.string.device_root_already, true, (mDialog, mDialogAction) -> {
+
+                    })
+                    .setNegativeButton(R.string.exit_app, (mDialog, mDialogAction) -> AndroidOS.killSelf())
+                    .show();
+        } else {
+            checkPermission();
+        }
+    }
+
     private void handleXposedState() {
         MDialog mDialog = new MDialog.Builder(this)
                 .setHeaderBgColorRes(R.color.colorPrimary)
+                .setHeaderPic(R.drawable.ic_warning_white_24dp)
                 .setTitle(R.string.warning)
-                .setNegativeButton(R.string.exit_app, (dialog, mDialogAction) -> killSelf())
+                .setNegativeButton(R.string.exit_app, (dialog, mDialogAction) -> AndroidOS.killSelf())
                 .setCancelable(false)
                 .create();
 
         // xposed 状态正常 但未激活模块
         final Button posBtn = mDialog.getPositiveButton();
-        if (AndroidOS.isXposedFrameworkInstalled()
-                && AndroidOS.isXposedManagerInstalled()) {
+        if (AndroidOS.isXposedFrameworkInstalled()) {
             mDialog.setMessage(R.string.dialog_msg_xposed_module_not_active);
             posBtn.setText(R.string.enable_module);
-            posBtn.setOnClickListener(v -> {
-                AndroidOS.jump2XposedManager();
-            });
+            posBtn.setOnClickListener(v -> AndroidOS.jump2XposedInstaller());
         } else {
-            mDialog.setMessage(R.string.dialog_msg_xposed_not_install);
+            mDialog.setMessage(R.string.dmsg_xposed_framework_not_installed);
             posBtn.setText(R.string.understand);
         }
 
@@ -111,9 +123,9 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
                     .setHeaderPic(R.drawable.ic_security_white_24dp)
                     .setTitle(R.string.permission_dialog_title)
                     .setMessage(R.string.dialog_msg_request_permission)
-                    .setPositiveButton(R.string.go_on, true, (mDialog, mDialogAction) -> {
-                        ActivityCompat.requestPermissions(this, list.toArray(new String[0]), REQUEST_CODE);
-                    })
+                    .setPositiveButton(R.string.go_on, true, (mDialog, mDialogAction) ->
+                            ActivityCompat.requestPermissions(this, list.toArray(new String[0]), REQUEST_CODE)
+                    )
                     .setCancelable(false)
                     .create();
             mPermissionDialog.show();
@@ -144,10 +156,10 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
             } else {
                 final Button negBtn = mPermissionDialog.getNegativeButton();
                 final Button posBtn = mPermissionDialog.getPositiveButton();
-                mPermissionDialog.setMessage(R.string.dialog_msg_refuse_permission);
+                mPermissionDialog.setMessage(R.string.dmsg_refuse_permission);
                 negBtn.setVisibility(View.VISIBLE);
                 negBtn.setText(R.string.exit_app);
-                negBtn.setOnClickListener(v -> killSelf());
+                negBtn.setOnClickListener(v -> AndroidOS.killSelf());
                 posBtn.setText(R.string.retry_request_permission);
             }
         }
@@ -160,14 +172,16 @@ public abstract class BaseMainActivity extends AppCompatActivity implements Env.
             return;
         }
 
-        Env.getInstance().setEnvStateListener(this);
+        DyXEnv.getInstance().setEnvStateListener(this);
+
+        final int result = DyXEnv.getInstance().initDyXEnv();
     }
 
-    protected void killSelf() {
-        finish();
-        Process.killProcess(Process.myPid());
-    }
-
+    /**
+     * 在 {@link XposedChecker} 拦截后, 修改返回值为 false
+     *
+     * @return true => xposed 未生效; false => xposed 生效
+     */
     private boolean waitHook() {
         return true;
     }

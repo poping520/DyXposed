@@ -35,7 +35,7 @@ public enum LibraryAssets {
     LibraryAssets(String assetPath, Library.Scope scope) {
         this.assetPath = assetPath;
         this.scope = scope;
-        file = new File(Env.COMPILE_ENV, assetPath);
+        file = new File(DyXEnv.COMPILE_ENV, assetPath);
     }
 
     /**
@@ -48,7 +48,7 @@ public enum LibraryAssets {
      */
     String release() {
         try {
-            return release(Env.COMPILE_ENV);
+            return release(DyXEnv.COMPILE_ENV);
         } catch (IOException e) {
             e.printStackTrace();
             throw new DyXRuntimeException("...");

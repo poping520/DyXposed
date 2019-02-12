@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Dyxposed 数据库管理类
+ * DyXposed 数据库管理类
  * <p>
  * Created by WangKZ on 18/12/05.
  *
@@ -31,6 +31,11 @@ public class DyXDBHelper extends SQLiteOpenHelper implements Releasenable {
 
     private static final int VERSION = 1;
 
+    /**
+     * 程序数据库名称
+     */
+    private static final String APP_DB_NAME = DyXContext.APPLICATION_NAME + ".db";
+
     private static final DyXDBHelper INSTANCE = new DyXDBHelper();
 
     public static DyXDBHelper getInstance() {
@@ -38,7 +43,7 @@ public class DyXDBHelper extends SQLiteOpenHelper implements Releasenable {
     }
 
     private DyXDBHelper() {
-        super(DyXContext.getApplicationContext(), DyXContext.APP_DB_NAME, null, VERSION);
+        super(DyXContext.getApplicationContext(), APP_DB_NAME, null, VERSION);
     }
 
     // 创建数据库

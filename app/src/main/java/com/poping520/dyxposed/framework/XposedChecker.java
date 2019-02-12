@@ -15,6 +15,9 @@ import static de.robv.android.xposed.XposedHelpers.*;
  */
 public class XposedChecker implements IXposedHookLoadPackage {
 
+    /**
+     * {@link BaseMainActivity#waitHook()}
+     */
     private static final String METHOD_NAME = "waitHook";
 
     @Override

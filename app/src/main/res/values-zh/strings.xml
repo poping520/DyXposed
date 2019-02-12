@@ -4,6 +4,7 @@
     <string name="action_settings">设置</string>
     <string name="action_log">日志</string>
     <string name="go_on">继续</string>
+    <string name="exit">退出</string>
     <string name="exit_app">退出程序</string>
     <string name="warning">警告</string>
     <string name="ok">确定</string>
@@ -14,21 +15,29 @@
 
     <string name="delete_module">删除模块</string>
 
+    <string name="xposed_installer_not_installed">未安装 Xposed Installer</string>
+    <string name="jump_xposed_installer_error">无法启动 Xposed Installer</string>
     <string name="dialog_msg_xposed_module_not_active">您尚未启用 DyXposed 模块。如果您确定已经启用了本模块，请重启设备</string>
+    <string name="dmsg_xposed_framework_not_installed">您的设备未安装 Xposed 框架，本程序无法正常工作</string>
     <string name="enable_module">启用模块</string>
-    <string name="dialog_msg_xposed_not_install">您的设备没有安装 Xposed 框架或者 Xposed 管理器，本程序无法正常工作</string>
 
     <string name="retry_request_permission">重新申请</string>
     <string name="permission_dialog_title">授权提示</string>
     <string name="dialog_msg_request_permission">DyXposed 需要存储空间权限才能正常运行，请授予本程序必要权限</string>
-    <string name="dialog_msg_refuse_permission">授权失败，这将导致 DyXposed 无法正常工作</string>
+    <string name="dmsg_refuse_permission">您拒绝了授权，这将导致 DyXposed 无法正常工作</string>
     <string name="toast_permission_granted">已获得必需权限</string>
+
+    <string name="dtitle_check_root">ROOT 授权</string>
+    <string name="dmsg_has_root">DyXposed 需要 ROOT 权限才能正常工作</string>
+    <string name="device_root_already">已 ROOT</string>
+
+
     <string name="dialog_title_select_work_mode">请选择工作模式</string>
     <string name="hint_add_module">请添加模块</string>
     <string name="hint_config_work_mode">请配置工作模式</string>
     <string name="work_mode_root">ROOT 模式</string>
     <string name="work_mode_normal">普通模式</string>
-    <string name="device_root_already">设备已ROOT</string>
+
     <string name="device_not_root">您的设备没有 ROOT 权限</string>
     <string name="dialog_msg_work_mode_root">
         <Date><![CDATA[普通模式对于<b>不需要存储空间权限的应用</b>将无法生效，建议您使用 ROOT 模式]]></Date>
