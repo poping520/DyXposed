@@ -91,7 +91,7 @@ public class DyXEnv {
         if (isWorkModeNotConfigure())
             return;
 
-        final boolean now = AndroidOS.isDeviceRooted();
+        final boolean now = AndroidOS.isRooted();
         final boolean last = DyXContext.get(ROOT_RELATIVE_DIR, false);
 
         if (now != last)

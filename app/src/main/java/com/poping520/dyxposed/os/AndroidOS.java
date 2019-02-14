@@ -5,17 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Looper;
 import android.os.Process;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.poping520.dyxposed.R;
-import com.poping520.dyxposed.exception.DyXRuntimeException;
 import com.poping520.dyxposed.framework.DyXContext;
 import com.poping520.dyxposed.util.FileUtil;
 
 import java.io.File;
-import java.util.List;
 import java.util.Locale;
 
 /**
@@ -43,9 +41,11 @@ public final class AndroidOS {
     }
 
     /**
+     * 如果系统存在 su 二进制文件 或 安装了 Magisk 框架, 即认为设备已 ROOT
+     *
      * @return 当前设备的系统是否 ROOT
      */
-    public static boolean isDeviceRooted() {
+    public static boolean isRooted() {
         return isSUBinaryExists() || isMagiskInstalled();
     }
 
@@ -174,6 +174,20 @@ public final class AndroidOS {
      */
     public static String getCurrentLanguage() {
         return Locale.getDefault().getLanguage();
+    }
+
+    /**
+     * @return 判断当前线程是否是主(UI)线程
+     */
+    public static boolean isMainThread() {
+        return Looper.getMainLooper() == Looper.myLooper();
+    }
+
+    /**
+     * @return 是否需要动态申请权限
+     */
+    public static boolean isDynamicPermission() {
+        return API_LEVEL >= Build.VERSION_CODES.M;
     }
 
     public static boolean isApiLevelUp_N() {

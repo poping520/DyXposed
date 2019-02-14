@@ -5,6 +5,8 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 /**
+ * 程序所有 Activity 的基类
+ *
  * @author WangKZ
  * @version 1.0.0
  * create on 2019/2/12 16:21

@@ -122,7 +122,7 @@ public class MainActivity extends BaseMainActivity {
                 final Button posBtn = mDialog.getPositiveButton();
                 final Button negBtn = mDialog.getNegativeButton();
 
-                if (AndroidOS.isDeviceRooted()) { // 设备已ROOT
+                if (AndroidOS.isRooted()) { // 设备已ROOT
                     mDialog.setHTMLMessage(R.string.dialog_msg_work_mode_root);
 
                     posBtn.setText(R.string.work_mode_root);
@@ -140,7 +140,7 @@ public class MainActivity extends BaseMainActivity {
                     mDialog.setHTMLMessage(R.string.dialog_msg_work_mode_normal);
 
                     posBtn.setText(R.string.understand);
-                    negBtn.setText(R.string.device_root_already);
+                    negBtn.setText(R.string.dbtn_root_already);
 
                     mDialog.setOnClickListener((dialog, mDialogAction) -> {
                         switch (mDialogAction) {

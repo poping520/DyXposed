@@ -22,14 +22,16 @@
     <string name="enable_module">启用模块</string>
 
     <string name="retry_request_permission">重新申请</string>
-    <string name="permission_dialog_title">授权提示</string>
-    <string name="dialog_msg_request_permission">DyXposed 需要存储空间权限才能正常运行，请授予本程序必要权限</string>
+    <string name="dtilte_request_permission">授权提示</string>
+    <string name="dmsg_request_permission">
+        <Date><![CDATA[DyXposed 需要 <b>存储空间</b> 权限才能正常运行，请授予程序必要权限]]></Date>
+    </string>
     <string name="dmsg_refuse_permission">您拒绝了授权，这将导致 DyXposed 无法正常工作</string>
     <string name="toast_permission_granted">已获得必需权限</string>
 
-    <string name="dtitle_check_root">ROOT 授权</string>
-    <string name="dmsg_has_root">DyXposed 需要 ROOT 权限才能正常工作</string>
-    <string name="device_root_already">已 ROOT</string>
+    <string name="dtitle_not_root">设备未 ROOT</string>
+    <string name="dmsg_not_root">您的设备可能没有获取 ROOT 权限，DyXposed 无法正常工作</string>
+    <string name="dbtn_root_already">已 ROOT</string>
 
 
     <string name="dialog_title_select_work_mode">请选择工作模式</string>

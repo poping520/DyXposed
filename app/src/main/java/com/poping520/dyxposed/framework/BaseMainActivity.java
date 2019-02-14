@@ -2,7 +2,6 @@ package com.poping520.dyxposed.framework;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,6 +14,7 @@ import android.widget.Button;
 import com.poping520.dyxposed.BuildConfig;
 import com.poping520.dyxposed.R;
 import com.poping520.dyxposed.os.AndroidOS;
+import com.poping520.dyxposed.util.Objects;
 import com.poping520.open.mdialog.MDialog;
 
 import java.util.ArrayList;
@@ -27,14 +27,14 @@ import java.util.List;
  */
 public abstract class BaseMainActivity extends BaseActivity implements DyXEnv.EnvStateListener {
 
+    private static final int REQUEST_CODE = 0;
+
     private static final String[] MUST_PERMISSIONS = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    private static final int REQUEST_CODE = 0;
-
-    private MDialog mPermissionDialog;
+    private MDialog mPmsDialog;
 
     protected DyXDBHelper mDBHelper;
 
@@ -55,19 +55,14 @@ public abstract class BaseMainActivity extends BaseActivity implements DyXEnv.En
         startCheck();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        DyXContext.getInstance().onDestroy();
-    }
-
     private void startCheck() {
-
-        if (!AndroidOS.isDeviceRooted()) {
+        if (!AndroidOS.isRooted()) {
+            /* 未检测到设备 root */
             DyXContext
-                    .mkBaseMDialog(R.drawable.ic_build_white_24dp, R.string.dtitle_check_root)
-                    .setMessage(R.string.dmsg_has_root)
-                    .setPositiveButton(R.string.device_root_already, true, (mDialog, mDialogAction) -> {
+                    .buildMDialog(R.drawable.ic_build_white_24dp, R.string.dtitle_not_root)
+                    .setCancelable(false)
+                    .setMessage(R.string.dmsg_not_root)
+                    .setPositiveButton(R.string.dbtn_root_already, true, (mDialog, mDialogAction) -> {
 
                     })
                     .setNegativeButton(R.string.exit_app, (mDialog, mDialogAction) -> AndroidOS.killSelf())
@@ -103,34 +98,31 @@ public abstract class BaseMainActivity extends BaseActivity implements DyXEnv.En
 
     // 检查必须权限
     private void checkPermission() {
-        if (AndroidOS.API_LEVEL < Build.VERSION_CODES.M) {
-            onCheckPermissionResult(true);
-            return;
-        }
 
+        /* 未获得权限的集合 */
         List<String> list = new ArrayList<>();
 
-        for (String permission : MUST_PERMISSIONS) {
-            if (ContextCompat.checkSelfPermission(this, permission)
-                    != PackageManager.PERMISSION_GRANTED) {
-                list.add(permission);
+        if (AndroidOS.isDynamicPermission()) {
+            /* 向集合添加未获得的权限 */
+            for (String permission : MUST_PERMISSIONS) {
+                if (ContextCompat.checkSelfPermission(this, permission)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    list.add(permission);
+                }
             }
         }
 
-        if (list.size() > 0) {
-            mPermissionDialog = new MDialog.Builder(this)
-                    .setHeaderBgColorRes(R.color.colorPrimary)
-                    .setHeaderPic(R.drawable.ic_security_white_24dp)
-                    .setTitle(R.string.permission_dialog_title)
-                    .setMessage(R.string.dialog_msg_request_permission)
+        if (list.isEmpty()) {
+            onPermissionsGranted();
+        } else {
+            mPmsDialog = DyXContext.buildMDialog(R.drawable.ic_security_white_24dp, R.string.dtilte_request_permission)
+                    .setHTMLMessage(R.string.dmsg_request_permission)
                     .setPositiveButton(R.string.go_on, true, (mDialog, mDialogAction) ->
                             ActivityCompat.requestPermissions(this, list.toArray(new String[0]), REQUEST_CODE)
                     )
                     .setCancelable(false)
                     .create();
-            mPermissionDialog.show();
-        } else {
-            onCheckPermissionResult(true);
+            mPmsDialog.show();
         }
     }
 
@@ -147,34 +139,53 @@ public abstract class BaseMainActivity extends BaseActivity implements DyXEnv.En
             }
         }
 
-        if (mPermissionDialog != null) {
-            if (isAllGranted) {
-                Snackbar.make(
-                        findViewById(android.R.id.content), R.string.toast_permission_granted, Snackbar.LENGTH_SHORT
-                ).show();
-                mPermissionDialog.dismiss();
-            } else {
-                final Button negBtn = mPermissionDialog.getNegativeButton();
-                final Button posBtn = mPermissionDialog.getPositiveButton();
-                mPermissionDialog.setMessage(R.string.dmsg_refuse_permission);
-                negBtn.setVisibility(View.VISIBLE);
-                negBtn.setText(R.string.exit_app);
-                negBtn.setOnClickListener(v -> AndroidOS.killSelf());
-                posBtn.setText(R.string.retry_request_permission);
-            }
-        }
+        /* 此处 mPmsDialog 不可能为空 */
+        Objects.requireNonNull(mPmsDialog, "");
 
-        onCheckPermissionResult(isAllGranted);
+        if (isAllGranted) {
+            Snackbar.make(
+                    findViewById(android.R.id.content), R.string.toast_permission_granted, Snackbar.LENGTH_SHORT
+            ).show();
+            onPermissionsGranted();
+        } else {
+            final Button negBtn = mPmsDialog.getNegativeButton();
+            final Button posBtn = mPmsDialog.getPositiveButton();
+            mPmsDialog.setMessage(R.string.dmsg_refuse_permission);
+            negBtn.setVisibility(View.VISIBLE);
+            negBtn.setText(R.string.exit_app);
+            negBtn.setOnClickListener(v -> AndroidOS.killSelf());
+            posBtn.setText(R.string.retry_request_permission);
+        }
     }
 
-    private void onCheckPermissionResult(boolean isGranted) {
-        if (!isGranted) {
-            return;
+    private void onPermissionsGranted() {
+
+        if (DyXContext.isRootAuthGranted()) {
+            if (mPmsDialog != null && mPmsDialog.isShowing())
+                mPmsDialog.dismiss();
+
+            DyXEnv.getInstance().setEnvStateListener(this);
+            final int result = DyXEnv.getInstance().initDyXEnv();
+        } else {
+            if (mPmsDialog == null) {
+                mPmsDialog = DyXContext.buildMDialog(
+                        R.drawable.ic_security_white_24dp, R.string.dtilte_request_permission
+                ).create();
+            }
+            mPmsDialog.setMessage("NEED ROOT");
+            mPmsDialog.getNegativeButton().setVisibility(View.INVISIBLE);
+            final Button posBtn = mPmsDialog.getPositiveButton();
+            posBtn.setText(R.string.understand);
+            posBtn.setOnClickListener(v -> {
+                mPmsDialog.dismiss();
+
+                DyXEnv.getInstance().setEnvStateListener(this);
+                final int result = DyXEnv.getInstance().initDyXEnv();
+            });
+            if (!mPmsDialog.isShowing()) {
+                mPmsDialog.show();
+            }
         }
-
-        DyXEnv.getInstance().setEnvStateListener(this);
-
-        final int result = DyXEnv.getInstance().initDyXEnv();
     }
 
     /**

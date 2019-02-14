@@ -21,14 +21,14 @@ import java.util.Map;
  */
 public final class DyXContext {
 
-    private static class InnerHolder {
+    private static final class InnerHolder {
 
         private static final DyXContext INSTANCE = new DyXContext();
 
         /* 全局 Context (Application Context) 对象 */
         private Context applicationContext;
 
-        /* 当前 Activity */
+        /* 当前 Activity 对象*/
         private Activity currentActivity;
     }
 
@@ -43,6 +43,7 @@ public final class DyXContext {
 
     private final InnerHolder mHolder;
 
+    /* Activity Object MAP */
     private final Map<Integer, Activity> mActMap;
 
     private DyXContext() {
@@ -56,7 +57,7 @@ public final class DyXContext {
 
     void onCreate(Application app) {
         mHolder.applicationContext = app.getApplicationContext();
-        sAppSP = getDyXSharedPrefs(BuildConfig.APPLICATION_ID);
+        sAppSP = getAppDyXSharedPrefs();
 
         // 更新启动次数
         int lastTimes = sAppSP.get(SPK_LAUNCH_TIMES, 0);
@@ -74,7 +75,7 @@ public final class DyXContext {
         mActMap.remove(act.hashCode());
     }
 
-    void onDestroy() {
+    private static void onAppDestroy() {
         // 关闭数据库
         DyXDBHelper.getInstance().release();
     }
@@ -90,22 +91,30 @@ public final class DyXContext {
         return context;
     }
 
+    /**
+     * @return 程序当前界面的 Activity 对象
+     */
     public static Activity getCurrentActivity() {
         final Activity activity = getInstance().mHolder.currentActivity;
         if (activity == null)
-            throw new IllegalStateException("...");
+            throw new IllegalStateException("Launch Activity is not initialize");
 
         return activity;
     }
 
+    /**
+     * 任何时候调用 即可正常退出程序
+     */
     public static void safeExitApp() {
+        onAppDestroy();
+
         final Map<Integer, Activity> actMap = getInstance().mActMap;
         for (Map.Entry<Integer, Activity> entry : actMap.entrySet()) {
             entry.getValue().finish();
         }
     }
 
-    public static MDialog.Builder mkBaseMDialog(@DrawableRes int headerPic, @StringRes int title) {
+    public static MDialog.Builder buildMDialog(@DrawableRes int headerPic, @StringRes int title) {
         return new MDialog.Builder(getCurrentActivity())
                 .setHeaderBgColorRes(R.color.colorPrimary)
                 .setHeaderPic(headerPic)
@@ -147,8 +156,25 @@ public final class DyXContext {
         return getApplicationContext().getString(resId, formatArgs);
     }
 
+    /**
+     * @param name 文件名
+     * @return {@link DyXSharedPrefs}
+     */
     public static DyXSharedPrefs getDyXSharedPrefs(String name) {
         return DyXSharedPrefs.Cache.getDyXSharedPrefs(name);
+    }
+
+
+    public static DyXSharedPrefs getAppDyXSharedPrefs() {
+        return getDyXSharedPrefs(BuildConfig.APPLICATION_ID);
+    }
+
+    public static void setRootAuthState(boolean granted) {
+
+    }
+
+    public static boolean isRootAuthGranted() {
+        return false;
     }
 
     /**
